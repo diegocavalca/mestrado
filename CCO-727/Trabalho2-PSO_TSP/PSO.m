@@ -1,7 +1,7 @@
     clear;
     clc;
 
-    % ATENCAO - Antes de executar este arquivo, eh necessario ter executado o arquivo PrepareData.m
+    % ATENCAO - Antes de executar este arquivo, se faz necessario ter executado o arquivo PrepareData.m
     
     % DADOS - Dataset (EIL51.tsp) e matriz de distancias do dataset
     load 'eil51.tsp';
@@ -54,7 +54,7 @@
         r1 = 0.3294;
         r2 = 0.9542;
                 
-        for j=1:N;
+        for j=1:1;
 
           % Transposicao...
           P = zeros(size(V,1), rows+1);
@@ -79,15 +79,25 @@
             end;  
             P(t,:) = x;      
           end;
+          % P(size(V,1),:)
           
           % Obtenção da Velocidade (Posição – Posição)
-          A = P(1,:);
-          for j=1:size(P(1,:),2);
+          P1 = P(1,:);
+          P2 = P(2,:);
+          SS = [];
+          for j=1:size(P1,2);
             
-              % Procurar pelo termo A[j] em B
-              idxA = find(P(1,:)==A(j));
-              idxB = find(P(2,:)==A(j));
+              % Procurar pelo termo P1[j] em P2
+              idxP1 = P1(j);
+              idxP2 = find(P2==idxP1);
+              SO = [idxP1 idxP2(1)];
             
+              % Adicao entre velocidades
+              if(idxP1 != idxP2);
+                SS = [SS; SO];
+                %disp(SO);
+              end;
+              
           end;
         
 %            % Velocidades (Atual = Deslocamento + Memoria Particula + Memoria Vizinhanca)
