@@ -10,7 +10,7 @@
     % Dimensoes do dataset
     [rows,columns]=size(distances); 
         
-    % Variáveis do PSO...
+    % Variaveis do PSO...
     N=4;
     n_iter = 10;
     X = zeros(n_iter,rows+1); % Posicao (Particulas)
@@ -53,7 +53,8 @@
         %r1 and r2 are random numbers...
         r1 = 0.3294;
         r2 = 0.9542;
-                
+        
+        % Percorrer particulas...
         for j=1:1;
 
           % Transposicao...
@@ -62,7 +63,7 @@
             % Modelos...
             if(t==1)
               x = X(j, :);
-            else;
+            else
               x = P(t-1,:);
             end;            
             v = V(t,:);
@@ -81,7 +82,7 @@
           end;
           % P(size(V,1),:)
           
-          % Obtenção da Velocidade (Posição – Posição)
+          % Obtencao da Velocidade (Posicao - Posicao)
           P1 = P(1,:);
           P2 = P(2,:);
           SS = [];
@@ -92,31 +93,16 @@
               idxP2 = find(P2==idxP1);
               SO = [idxP1 idxP2(1)];
             
-              % Adicao entre velocidades (verificar se ja n faz parte
-              if(idxP1 != idxP2);
+              % Adicao entre velocidades
+              % verificar se ja n faz parte - sum(ismember(SS,SO,'rows'))==0
+              if( idxP1 ~= idxP2 );
                 SS = [SS; SO];
                 %disp(SO);
               end;
               
           end;
         
-%            % Velocidades (Atual = Deslocamento + Memoria Particula + Memoria Vizinhanca)
-%            V(i,j) = V(i-1,j) + r1*(Pbest(j) - X(i-1,j)) + r2*(Gbest - X(i-1,j));
-%            
-%            % Novas posicoes        
-%            X(i,j) = X(i-1,j) + V(i,j);
-%            
-%            % Fitnesss...
-%            f(i,j) = -X(i,j)^2 + 2*X(i,j)+11;
-            
-            % Fitness....
-%            individual = X(i,:);
-%            if(j > 1)
-%              f(i,j) = 0;
-%              for j=2:size(individual,2);
-%                  f(i,j) = f(1,1) + distances(individual(1,j),individual(1,j-1));
-%              end;
-%            end;
+          
         end;
         
         % PBest / Gbest - Iterativo
