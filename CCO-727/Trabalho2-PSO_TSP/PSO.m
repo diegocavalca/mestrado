@@ -92,7 +92,7 @@
               idxP2 = find(P2==idxP1);
               SO = [idxP1 idxP2(1)];
             
-              % Adicao entre velocidades
+              % Adicao entre velocidades (verificar se ja n faz parte
               if(idxP1 != idxP2);
                 SS = [SS; SO];
                 %disp(SO);
