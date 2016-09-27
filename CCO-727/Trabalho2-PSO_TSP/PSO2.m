@@ -15,7 +15,7 @@
     % Variaveis do PSO...
     N=4;
     popSize = 50;
-    n_iter = 10;
+    n_iter = 50;
     X = zeros(popSize,rows+1); % Posicao (Particulas)
     %V = inf(popSize, 1); % Velocidade (Permutacoes)
     f = inf(n_iter, popSize); % Custos
@@ -29,12 +29,12 @@
         X(i,:) = [randperm(rows,rows) 0];
     end;
     X(:,rows+1) = X(:,1); % Destino...
-        
+
     %% Iteracoes...
-    %for t=1:n_iter;
-    t=0;
-    while(gBestScore>500 && t<1000);
-      t = t + 1;
+    for t=1:n_iter;
+    %t=0;
+    %while(gBestScore>500 && t<1000);
+      %t = t + 1;
         
         %r1 and r2 are random numbers...
         c2 = rand(1);
@@ -107,7 +107,7 @@
             
             %% Atualizando particula...
             % Velocidade....
-            v = [randperm(51,2)];
+            v = [randperm(51,2);];
             %v = [2 5; 23 48];
             Vt = [];
             Vt = [Vt; v];
