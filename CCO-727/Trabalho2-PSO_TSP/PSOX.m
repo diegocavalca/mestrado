@@ -13,30 +13,45 @@
     [rows,columns]=size(distances); 
         
     % Variaveis do PSO...
-    swarmSize = 100;
-    numIter = 500;
+    swarmSize = 20;
+    numIter = 50;
     X = zeros(swarmSize, rows); % Posicao (Particulas)
     V = cell(1, swarmSize); % Velocidade (Permutacoes)
     Vmax = 15;
     gBestScore = inf;
     pBestScore = inf(swarmSize, 1); 
-    c1 = 0.3;
-    c2 = 0.3;
-    c3 = 0.3;
+    c1 = 0.9;
+    c2 = 0.05;
+    c3 = 0.05;
 
     %% Inicializacao
-    % Nuvem...
-    X(1,:) = 1:rows;
-    for i=2:swarmSize;
-        X(i,:) = randperm(rows, rows);
-    end;
-    %X(:,rows+1) = X(:,1); % Destino...
+%     % Nuvem...
+%     X(1,:) = 1:rows;
+%     for i=2:swarmSize;
+%         particle = zeros(1, rows);
+%         % Cidade inicial aleatoria...
+%         particle(1) = randperm(rows, 1); 
+%         for j=2:rows;
+%             % k(+i) vizinhos mais proximos
+%             k = 1;
+%             c = particle(1);
+%             target = 1;
+%             while ( isempty(find(particle==c))==0 ); % Verificar se cidade ja esta na particula...
+%                 neighbours = distances(particle(j-1),:);
+%                 neighbours( neighbours==0 ) = inf;
+%                 [~,idx]=sort(neighbours(:));
+%                 c = idx(k);
+%                 k = k+1;
+%             end;
+%             particle(j) = c;
+%         end;
+%         X(i,:) = particle;
+%     end;
+
+    load 'X.mat';
 
     %% Iteracoes...
     for t=1:numIter;
-    %t=0;
-    %while(gBestScore>500 && t<1000);
-      %t = t + 1;
         
         % Avaliar particulas...
         for i=1:swarmSize;
@@ -49,7 +64,6 @@
                 gBestScore=cost;
                 gBest=X(i,:);
             end;
-            %f(t,i) = cost;
         end;
 
         % Atualizar particulas (velocidade e posicao)...        
@@ -71,16 +85,14 @@
             Vg = SwapOperators(gBest, X(i,:));
             Vg = Memory(Vg, beta);
             
-            %if(t == 5);error('I dont want to play anymore');end;
-            
             %% Atualizando particula...
             % Velocidade....
             V{i} = [Vd; Vp; Vg];
-            V{i} = unique(V{i},'rows','stable');
-%             % Controle de velocidade...
-%             if size(V{i},1) > Vmax;
-%                 V{i} = V{i}(1:Vmax,:);
-%             end;
+            %V{i} = unique(V{i},'rows','stable');
+            % Controle de velocidade...
+            if size(V{i},1) > Vmax;
+                V{i} = V{i}(1:Vmax,:);
+            end;
 
             % Posicao
             X(i, :) = Movement(X(i,:), V{i});
@@ -99,6 +111,10 @@
     % Resultados...
     figure;
     plot(histBest);
+    figure;
+    rte = gBest([1:rows 1]);
+    plot(rte',rte','r.-'); % Caminho
+    plot(eil51(rte,2),eil51(rte,3),'r.-'); % Pontos (cidades)   
     
     toc;
 %

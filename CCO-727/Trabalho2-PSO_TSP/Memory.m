@@ -2,8 +2,8 @@ function SS = Memory( SS, c )
     % Memoria...
     if( c > 0 && c <= 1 );
         SS = SS(1:ceil( c * size(SS,1)),:);     
-    elseif( c > 1)
-        partInt = floor(c);
+    elseif( c > 1 || c < 1)
+        partInt = floor(abs(c));
         Vaux = [];
         for j=1:partInt;
            Vaux =[Vaux; SS]; 
