@@ -1,6 +1,8 @@
     clear;
     clc;
 
+    %tic;
+    
     % ATENCAO - Antes de executar este arquivo, se faz necessario ter executado o arquivo PrepareData.m
     
     % DADOS - Dataset (EIL51.tsp) e matriz de distancias do dataset
@@ -14,9 +16,11 @@
     N=4;
     popSize = 50;
     n_iter = 10;
-    X = zeros(n_iter,rows+1); % Posicao (Particulas)
-    V = [1 25; 25 50]; % Velocidade (Permutacoes)
+    X = zeros(popSize,rows+1); % Posicao (Particulas)
+    %V = inf(popSize, 1); % Velocidade (Permutacoes)
     f = inf(n_iter, popSize); % Custos
+    gBestScore = inf;
+    pBestScore = inf(popSize, 1); 
 
     %% Inicializacao
     % Populacao...
@@ -24,135 +28,109 @@
     for i=2:popSize;
         X(i,:) = [randperm(rows,rows) 0];
     end;
-    X(:,52) = X(:,1); % Destino...
-
+    X(:,rows+1) = X(:,1); % Destino...
+        
     %% Iteracoes...
-    for t=1:n_iter;
+    %for t=1:n_iter;
+    t=0;
+    while(gBestScore>500 && t<1000);
+      t = t + 1;
         
         %r1 and r2 are random numbers...
-        c2 = 0.3294;
-        c3 = 0.9542;
-        
-        % Fitness (aptidao)
-        for i=1:popSize;
-            f(t,i) = Fitness(X(i,:), distances);
-        end;
-
-        % Avaliar...
-        [Pbest,idxPbest] = min(f);
-        Pbest = X(idxPbest(1),:);
-        [Gbest,idxGbest] = min(Pbest);
-        Gbest = X(idxGbest(1),:);
-        
-        for i=1:popSize;
-            
-            % Operadores de troca para calcular = Gbest - x(t-1)
-            if( X(i,:) ~= Gbest );
-                SG = [];
-                x = X(i,:);
-                Paux = Gbest;
-                for c=1:size(x,2);
-                    % Elementos x em Paux
-                    idxP2 = find(Paux==x(c));
-                    % verificar se ja n faz parte - sum(ismember(SS,SO,'rows'))==0
-                    if( c ~= idxP2 );
-                        SO = [c idxP2(1)];
-                        SG = [SG; SO]; % SO
-                        % Atualizar Paux
-                        Paux([c idxP2(1)]) = Paux([idxP2(1) c]); 
-                        if( Paux(1) ~=Paux(size(Paux,2)) ); Paux(size(Paux,2)) = Paux(1); end;
-                    end;
-                end;
+        c2 = rand(1);
+        c3 = rand(1);
                 
-                % Memoria da Vizinhanca
-                if(c2==0);
-                    Vg = [];    
-                elseif(c2>0 && c2<1)
-                    SG = SG([1:ceil( c2 * size(SG,1))],:);                
-                elseif (c>1)
-                    
-                else
-                    SG([1:ceil(0.5)], :) = [];
-                    % inverter
-                end;
-
+        % Avaliar particulas...
+        for i=1:popSize;
+            cost = Fitness(X(i,:), distances);
+            if(pBestScore(i)>cost)
+                pBestScore(i)=cost;
+                pBest(i,:)=X(i,:);
+            end
+            if(gBestScore>cost)
+                gBestScore=cost;
+                gBest=X(i,:);
             end;
-            
-
-            % Operadores de troca para calcular = Pbest - x(t-1)
-            if( X(i,:) ~= Pbest );
-                SP = [];
-                x = X(i,:);
-                Paux = Pbest;
-                for c=1:size(x,2);
-                    % Elementos x em Paux
-                    idxP2 = find(Paux==x(c));
-                    % verificar se ja n faz parte - sum(ismember(SS,SO,'rows'))==0
-                    if( c ~= idxP2 );
-                        SO = [c idxP2(1)];
-                        SP = [SP; SO]; % SO
-                        % Atualizar Paux
-                        Paux([c idxP2(1)]) = Paux([idxP2(1) c]); 
-                        if( Paux(1) ~=Paux(size(Paux,2)) ); Paux(size(Paux,2)) = Paux(1); end;
-                    end;
-
-                end;
-            end;
-            
-            
-            
+            f(t,i) = cost;
         end;
 
-
-        
-        % Percorrer particulas...
-        for j=1:1;
-
-          % Transposicao...
-          P = zeros(size(V,1), rows+1);
-          for t=1:size(V,1);
-            % Modelos...
-            if(t==1)
-              x = X(j, :);
-            else
-              x = P(t-1,:);
+        % Atualizar particulas (velocidade e posicao)...        
+        for i=1:popSize;
+            
+            % Operadores de troca para calcular = pBest - x(t-1)
+            %if( X(i,:) ~= pBest(i,:) );
+            SS = [];
+            Paux = pBest(i,:);
+            x = X(i,:);                
+            for c=1:size(Paux,2)-1;
+                % Elementos x em Paux
+                idxP2 = find(x([1:rows])==Paux(c));
+                % verificar se ja n faz parte - sum(ismember(SS,SO,'rows'))==0
+                if( c ~= idxP2 );
+                    SO = [c idxP2];
+                    SS = [SS; SO]; % SO
+                    % Atualizar x
+                    x([c idxP2]) = x([idxP2 c]); 
+                    if( x(1) ~=x(size(Paux,2)) ); x(size(x,2)) = x(1); end;
+                end;
             end;            
-            v = V(t,:);
-            % Swap...
-            for y=2:size(v,2);
-              vi = x(v(y-1));
-              vj = x(v(y));
-              x(v(y-1)) = vj;
-              x(v(y)) = vi;              
-              % Verificar posicao inicial/final
-              if(v(y)==1 || v(y-1)==1); 
-                x(size(x,2)) = x(1);
-              end;
-            end;  
-            P(t,:) = x;      
-          end;
-          % P(size(V,1),:)
-          
-        
-          
-        end;
-        
-        % Verificar convergencia ...
-        convergence = min(f);
-        for i=2:N;        
-            % Verificar se possui valores proximos...
-            diff = convergence(i) - convergence(i-1);
-            if ( diff > 0.2 || diff < 0.2 ); break; end;
+            % Memoria da Particula
+            if(c2>0 && c2<1)
+              Vp = SS([1:ceil( c2 * size(SS,1))],:);                
+            else
+              Vp = [];                     
+            end;
             
-            % Se atingiu a ultima posicao, convergiu
-            if (i==4) break; end;
+            % Operadores de troca para calcular = gBest - x(t-1)
+            %if( X(i,:) ~= pBest(i,:) );
+            SS = [];
+            Paux = gBest;
+            x = X(i,:);                
+            for c=1:size(Paux,2)-1;
+                % Elementos x em Paux
+                idxP2 = find(x([1:rows])==Paux(c));
+                % verificar se ja n faz parte - sum(ismember(SS,SO,'rows'))==0
+                if( c ~= idxP2 );
+                    SO = [c idxP2];
+                    SS = [SS; SO]; % SO
+                    % Atualizar x
+                    x([c idxP2]) = x([idxP2 c]); 
+                    if( x(1) ~=x(size(Paux,2)) ); x(size(x,2)) = x(1); end;
+                end;
+            end;            
+            % Memoria da Vizinhanca
+            if(c3>0 && c3<1)
+              Vg = SS([1:ceil( c3 * size(SS,1))],:);                
+            else
+              Vg = [];                 
+            end;
+            
+            %% Atualizando particula...
+            % Velocidade....
+            v = [randperm(51,2)];
+            %v = [2 5; 23 48];
+            Vt = [];
+            Vt = [Vt; v];
+            Vt = [Vt; Vp];
+            Vt = [Vt; Vg];
+            % Posicao...
+            for v=1:size(Vt,1);
+              vel = Vt(v,:);
+              X(i, [vel(1) vel(2)]) = X(i, [vel(2) vel(1)]); % Operacoes de troca...
+              if( X(i, 1) ~= X(i, rows+1) ); X(i, rows+1) = X(i, 1); end;
+            end;        
+            
+            %disp( strcat('-----> Pbest(',num2str(i),'): ', num2str(pBestScore(i))) );
         end;
-        
+        histBest(t) = gBestScore;
     end;
+    
+    plot(histBest);
+    %toc;
 %
 %    % Resultados...
 %    [Pbest,idxPbest] = max(f);
-%    [Gbest,idxGbest] = max(Pbest);  % Maior valor da fun��o
+%    [Gbest,idxGbest] = max(Pbest);  % Maior valor da funcao
 %    % Melhor X
 %    Xbest = X(idxPbest(1),:); 
 %
