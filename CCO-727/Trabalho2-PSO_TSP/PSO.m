@@ -1,6 +1,8 @@
     clear;
     clc;
 
+    tic;
+    
     % ATENCAO - Antes de executar este arquivo, se faz necessario ter executado o arquivo PrepareData.m
     
     % DADOS - Dataset (EIL51.tsp) e matriz de distancias do dataset
@@ -11,121 +13,104 @@
     [rows,columns]=size(distances); 
         
     % Variaveis do PSO...
-    N=4;
-    n_iter = 10;
-    X = zeros(n_iter,rows+1); % Posicao (Particulas)
-    V = [1 25; 25 50]; % Velocidade (Permutacoes)
-    f = inf(n_iter, rows+1); % Custos
+    popSize = 50;
+    numIter = 1000;
+    X = zeros(popSize,rows+1); % Posicao (Particulas)
+    V = cell(1, popSize); % Velocidade (Permutacoes)
+    Vmax = 15;
+    f = inf(numIter, popSize); % Custos
+    gBestScore = inf;
+    pBestScore = inf(popSize, 1); 
 
-    % Inicial
+    %% Inicializacao
+    % Populacao...
     X(1,:) = [1:rows 1];
-%    particle = randperm(rows,rows);
-%    X(1,:) = [particle particle(1)]; % Com retorno a posicao 1....
-    %V(1,:) = inf(1, rows+1);
-
-    % Fitness inicial
-    individual = X(1,:);
-    f(1,1) = 0;
-    for j=2:size(individual,2);
-        f(1,1) = f(1,1) + distances(individual(j),individual(j-1));
+    parfor i=2:popSize;
+        X(i,:) = [randperm(rows,rows) 0];
+        V{i} = [randperm(51,2)];
     end;
-%    % FITNESS (inicial) - Calcular aptidao de cada individuo (caminho) da populacao
-%    individual = 0;
-%    for i=1:1;
-%        % Capturar cada individuo da populacao
-%        individual = X(i,:);
-%
-%        % Percorrer colunas (pontos) do individuo a fim de totalizar o custo do
-%        % trajeto
-%        f(1,i) = 0;
-%        for j=2:size(individual,2);
-%            f(1,i) = f(1,i) + distances(individual(1,j),individual(1,j-1));
-%        end;
-%    end;
+    X(:,rows+1) = X(:,1); % Destino...
 
-    % PBest / Gbest - INICIAL
-    [Pbest,idxPbest] = min(f);
-    Pbest = X(idxPbest(1),:);
-    [Gbest,idxGbest] = min(Pbest);
-  
-    for i=2:n_iter;
+    %% Iteracoes...
+    parfor t=1:numIter;
+    %t=0;
+    %while(gBestScore>500 && t<1000);
+      %t = t + 1;
+        
+        % Avaliar particulas...
+        parfor i=1:popSize;
+            cost = Fitness(X(i,:), distances);
+            if(pBestScore(i)>cost)
+                pBestScore(i)=cost;
+                pBest(i,:)=X(i,:);
+            end
+            if(gBestScore>cost)
+                gBestScore=cost;
+                gBest=X(i,:);
+            end;
+            f(t,i) = cost;
+        end;
+
+        % Atualizar particulas (velocidade e posicao)...        
+        parfor i=1:popSize;
+        
+            % Coeficientes de confianca...
+            alpha = rand(1);
+            beta = rand(1);
+       
+            % Extrair operadores de troca... 
+            Vp = SwapOperators(pBest(i,:), X(i,:), alpha); % (pBest - Xi)
+            Vg = SwapOperators(gBest, X(i,:), beta); % (gBest - Xi)
+            
+%            %% Atualizando particula...
+%            % Velocidade....
+%            V{i} = [V{i}; Vp];
+%            V{i} = [V{i}; Vg];
+%            %[~,ssIdx] = unique(V{i},'rows');
+%            %V{i} = V{i}(sort(ssIdx),:);
+%            
+%%            % Controle de velocidade...
+%%            if size(V{i},1) > Vmax;
+%%              V{i} = V{i}(1:Vmax,:);
+%%            end;
+%            
+%            % Posicao
+%            parfor v=1:size(V{i},1); 
+%              vel = V{i}(v,:);%V(v,:);
+%              X(i, [vel(1) vel(2)]) = X(i, [vel(2) vel(1)]); % Operacoes de troca...
+%              if( X(i, 1) ~= X(i, rows+1) ); X(i, rows+1) = X(i, 1); end;              
+%            end;
+
+            % Velocidade...
+            Vt = [randperm(51,2)];
+            Vt = [Vt; Vp];
+            Vt = [Vt; Vg];    
+            % Controle de velocidade...
+            if length(Vt) > Vmax;
+              Vt = Vt(1:Vmax,:);
+            end;
+            
+            % Posicao...
+            parfor v=1:size(Vt,1);
+              vel = Vt(v,:);
+              X(i, [vel(1) vel(2)]) = X(i, [vel(2) vel(1)]); % Operacoes de troca...
+              if( X(i, 1) ~= X(i, rows+1) ); X(i, rows+1) = X(i, 1); end;
+            end;        
+            
+            %disp( strcat('-----> Pbest(',num2str(i),'): ', num2str(pBestScore(i))) );
+        end;
+        histBest(t) = gBestScore;
+        
+    end;
     
-        %r1 and r2 are random numbers...
-        r1 = 0.3294;
-        r2 = 0.9542;
-        
-        % Percorrer particulas...
-        for j=1:1;
-
-          % Transposicao...
-          P = zeros(size(V,1), rows+1);
-          for t=1:size(V,1);
-            % Modelos...
-            if(t==1)
-              x = X(j, :);
-            else
-              x = P(t-1,:);
-            end;            
-            v = V(t,:);
-            % Swap...
-            for y=2:size(v,2);
-              vi = x(v(y-1));
-              vj = x(v(y));
-              x(v(y-1)) = vj;
-              x(v(y)) = vi;              
-              % Verificar posicao inicial/final
-              if(v(y)==1 || v(y-1)==1); 
-                x(size(x,2)) = x(1);
-              end;
-            end;  
-            P(t,:) = x;      
-          end;
-          % P(size(V,1),:)
-          
-          % Obtencao da Velocidade (Posicao - Posicao)
-          P1 = P(1,:);
-          P2 = P(2,:);
-          SS = [];
-          for j=1:size(P1,2);
-            
-              % Procurar pelo termo P1[j] em P2
-              idxP1 = P1(j);
-              idxP2 = find(P2==idxP1);
-              SO = [idxP1 idxP2(1)];
-            
-              % Adicao entre velocidades
-              % verificar se ja n faz parte - sum(ismember(SS,SO,'rows'))==0
-              if( idxP1 ~= idxP2 );
-                SS = [SS; SO];
-                %disp(SO);
-              end;
-              
-          end;
-        
-          
-        end;
-        
-        % PBest / Gbest - Iterativo
-        [Pbest,idxPbest] = min(f);
-        Pbest = X(idxPbest(1),:);
-        [Gbest,idxGbest] = min(Pbest);    
-        
-        % Verificar convergencia ...
-        convergence = min(f);
-        for i=2:N;        
-            % Verificar se possui valores proximos...
-            diff = convergence(i) - convergence(i-1);
-            if ( diff > 0.2 || diff < 0.2 ); break; end;
-            
-            % Se atingiu a ultima posicao, convergiu
-            if (i==4) break; end;
-        end;
-        
-    end;
+    % Resultados...
+    plot(histBest);
+    
+    toc;
 %
 %    % Resultados...
 %    [Pbest,idxPbest] = max(f);
-%    [Gbest,idxGbest] = max(Pbest);  % Maior valor da fun��o
+%    [Gbest,idxGbest] = max(Pbest);  % Maior valor da funcao
 %    % Melhor X
 %    Xbest = X(idxPbest(1),:); 
 %
