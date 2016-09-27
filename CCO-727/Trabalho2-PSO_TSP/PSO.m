@@ -32,13 +32,13 @@
     X(:,rows+1) = X(:,1); % Destino...
 
     %% Iteracoes...
-    parfor t=1:numIter;
+    for t=1:numIter;
     %t=0;
     %while(gBestScore>500 && t<1000);
       %t = t + 1;
         
         % Avaliar particulas...
-        parfor i=1:popSize;
+        for i=1:popSize;
             cost = Fitness(X(i,:), distances);
             if(pBestScore(i)>cost)
                 pBestScore(i)=cost;
@@ -69,10 +69,10 @@
 %            %[~,ssIdx] = unique(V{i},'rows');
 %            %V{i} = V{i}(sort(ssIdx),:);
 %            
-%%            % Controle de velocidade...
-%%            if size(V{i},1) > Vmax;
-%%              V{i} = V{i}(1:Vmax,:);
-%%            end;
+%            % Controle de velocidade...
+%            %if size(V{i},1) > Vmax;
+%            %  V{i} = V{i}(1:Vmax,:);
+%            %end;
 %            
 %            % Posicao
 %            parfor v=1:size(V{i},1); 
@@ -91,7 +91,7 @@
             end;
             
             % Posicao...
-            parfor v=1:size(Vt,1);
+            for v=1:size(Vt,1);
               vel = Vt(v,:);
               X(i, [vel(1) vel(2)]) = X(i, [vel(2) vel(1)]); % Operacoes de troca...
               if( X(i, 1) ~= X(i, rows+1) ); X(i, rows+1) = X(i, 1); end;

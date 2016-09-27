@@ -22,27 +22,14 @@
 % ## Author: Diego Cavalca <diego.cavalca@dc.ufscar.br>
 % ## Created: 2016-09-27
 
-function SS = SwapOperators (P1, P2)
-
-    % Operadores de troca (gBest ou pBest) - Xt
-    %if( X(i,:) ~= pBest(i,:) );
-    SS = [];
-    Paux = P1;
-    x = P2;       
-    sizeP = size(Paux,2);    
-    for j=1:sizeP;
-        %disp(x);
-        % Elementos x em Paux
-        idxP2 = find(x([1:sizeP])==Paux(j));
-        % verificar se ja n faz parte - sum(ismember(SS,SO,'rows'))==0
-        if( (j ~= idxP2) );%& isequal(sum(ismember(SS,[j idxP2],'rows')),0) );
-            SO = [j idxP2];
-            SS = [SS; SO]; % SO
-            % Atualizar x
-            x([j idxP2]) = x([idxP2 j]); 
-            %if( x(1) ~=x(size(Paux,2)) ); x(size(x,2)) = x(1); end;
-        end;
-    end;  
-    %if( x(1) ~=x(size(Paux,2)) ); x(size(x,2)) = x(1); end;
+function Xi = Movement (X, V)
+    %disp(length(V));
+    for i=1:size(V,1);%length(V); 
+        vel = V(i,:); %V(v,:);
+        X([vel(1) vel(2)]) = X([vel(2) vel(1)]); % Operacoes de troca...
+        %if( X(1) ~= X(size(X,2)) ); X(size(X,2)) = X(1); end;              
+    end;
+    
+    Xi = X;
 
 end
