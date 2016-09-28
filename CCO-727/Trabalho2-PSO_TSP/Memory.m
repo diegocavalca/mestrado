@@ -1,7 +1,8 @@
 function SS = Memory( SS, c )
     % Memoria...
     if( c > 0 && c <= 1 );
-        SS = SS(1:ceil( c * size(SS,1)),:);     
+      x = floor(c * size(SS,1));
+      SS = SS(randperm(x, x),:);     
     elseif( c > 1 || c < 1)
         partInt = floor(abs(c));
         Vaux = [];
@@ -12,7 +13,8 @@ function SS = Memory( SS, c )
         SS = Vaux;
 
         partDec = c - partInt;
-        SS = [SS; SS(1:ceil( partDec * size(SS,1)),:)];                
+        x = floor(partDec * size(SS,1));
+        SS = [SS; SS(randperm(x, x),:)];                
     else
         SS = [];    
     end;

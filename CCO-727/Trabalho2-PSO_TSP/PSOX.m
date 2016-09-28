@@ -13,8 +13,8 @@
     [rows,columns]=size(distances); 
         
     % Variaveis do PSO...
-    swarmSize = 20;
-    numIter = 50;
+    swarmSize = 100;
+    numIter = 500;
     X = zeros(swarmSize, rows); % Posicao (Particulas)
     V = cell(1, swarmSize); % Velocidade (Permutacoes)
     Vmax = 15;
@@ -68,7 +68,6 @@
 
         % Atualizar particulas (velocidade e posicao)...        
         for i=1:swarmSize;
-        
             
 %             % Inversao
 %             invI = randi([1 floor(rows/2)]);
@@ -102,6 +101,11 @@
 
             % Posicao
             X(i, :) = Movement(X(i,:), V{i});
+            
+            % Resetar se for melhor globl
+            if isequal(X(i, :), gBest);% || isequal(X(i, :), pBest(i, :));
+              X(i, :) = randperm(rows, rows);
+            end;
             
         end;
         
