@@ -69,6 +69,12 @@
         % Atualizar particulas (velocidade e posicao)...        
         for i=1:swarmSize;
         
+            
+%             % Inversao
+%             invI = randi([1 floor(rows/2)]);
+%             invF = randi([invI+1 rows]);
+%             X(i,invI:invF) = fliplr(X(i,invI:invF));
+
             % Coeficientes de confianca...
             w = c1*rand(1);
             alpha = c2*rand(1);
