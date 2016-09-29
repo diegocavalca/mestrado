@@ -22,27 +22,38 @@
 % ## Author: Diego Cavalca <diego.cavalca@dc.ufscar.br>
 % ## Created: 2016-09-27
 
-function SS = SwapOperators (P1, P2)
+function SS = SwapOperators (sInit, sObjective)
 
     % Operadores de troca (gBest ou pBest) - Xt
-    %if( X(i,:) ~= pBest(i,:) );
     SS = [];
-    Paux = P1;
-    x = P2;       
-    sizeP = size(Paux,2);    
-    for j=1:sizeP;
-        %disp(x);
-        % Elementos x em Paux
-        idxP2 = find(x([1:sizeP])==Paux(j));
-        % verificar se ja n faz parte - sum(ismember(SS,SO,'rows'))==0
-        if( (j ~= idxP2) );%& isequal(sum(ismember(SS,[j idxP2],'rows')),0) );
-            SO = [j idxP2];
+    
+    % Path Relinking - Avanço (Ref.: Goldbarg, 2016)
+    for j=1:size(sObjective,2);
+        % Buscar posicao do elemento sObj(j) em sInit
+        idx = find(sInit==sObjective(j));
+        if( (j ~= idx) );
+            SO = [j idx];
             SS = [SS; SO]; % SO
-            % Atualizar x
-            x([j idxP2]) = x([idxP2 j]); 
-            %if( x(1) ~=x(size(Paux,2)) ); x(size(x,2)) = x(1); end;
+            % Atualizar sInit
+            sInit([j idx]) = sInit([idx j]); 
         end;
     end;  
-    %if( x(1) ~=x(size(Paux,2)) ); x(size(x,2)) = x(1); end;
+    
+%    Paux = sObjective;
+%     x = sInit;       
+%     sizeP = size(Paux,2);    
+%     for j=1:sizeP;
+%         % Elementos x em Paux
+%         idxP2 = find(x([1:sizeP])==Paux(j));
+%         % verificar se ja n faz parte - sum(ismember(SS,SO,'rows'))==0
+%         if( (j ~= idxP2) );%& isequal(sum(ismember(SS,[j idxP2],'rows')),0) );
+%             SO = [j idxP2];
+%             SS = [SS; SO]; % SO
+%             % Atualizar x
+%             x([j idxP2]) = x([idxP2 j]); 
+%             %if( x(1) ~=x(size(Paux,2)) ); x(size(x,2)) = x(1); end;
+%         end;
+%     end;  
+%    %if( x(1) ~=x(size(Paux,2)) ); x(size(x,2)) = x(1); end;
 
 end

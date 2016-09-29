@@ -12,50 +12,55 @@
     % Dimensoes do dataset
     [rows,columns]=size(distances); 
         
-    % Variaveis do PSO...
-    swarmSize = 100;
-    numIter = 500;
-    X = zeros(swarmSize, rows); % Posicao (Particulas)
-    V = cell(1, swarmSize); % Velocidade (Permutacoes)
+    %% Variaveis do PSO...
+    swarmSize = 50;
+    numIter = 1000;
     Vmax = 15;
-    gBestScore = inf;
-    pBestScore = inf(swarmSize, 1); 
     c1 = 0.9;
     c2 = 0.05;
     c3 = 0.05;
 
-    %% Inicializacao
-%     % Nuvem...
-%     X(1,:) = 1:rows;
-%     for i=2:swarmSize;
-%         particle = zeros(1, rows);
-%         % Cidade inicial aleatoria...
-%         particle(1) = randperm(rows, 1); 
-%         for j=2:rows;
-%             % k(+i) vizinhos mais proximos
-%             k = 1;
-%             c = particle(1);
-%             target = 1;
-%             while ( isempty(find(particle==c))==0 ); % Verificar se cidade ja esta na particula...
-%                 neighbours = distances(particle(j-1),:);
-%                 neighbours( neighbours==0 ) = inf;
-%                 [~,idx]=sort(neighbours(:));
-%                 c = idx(k);
-%                 k = k+1;
-%             end;
-%             particle(j) = c;
-%         end;
-%         X(i,:) = particle;
-%     end;
+    X = zeros(swarmSize, rows); % Posicao (Particulas)
+    V = cell(1, swarmSize); % Velocidade (Permutacoes)
+    F = inf(swarmSize, 1); % Custos (Funcao objetivo)
+    gBestScore = inf;
+    pBestScore = inf(swarmSize, 1);     
 
-    load 'X.mat';
+    %% Inicializacao
+    % Nuvem aleatoria - Metodo do Vizinho mais Proximo (Goldbarg e Luna, 2005)...
+    %X(1,:) = 1:rows;
+    for i=1:swarmSize;
+        particle = zeros(1, rows);
+        % Cidade inicial aleatoria...
+        particle(1) = randperm(rows, 1); 
+        for j=2:rows;
+            % k(+i) vizinhos mais proximos
+            k = 1;
+            c = particle(1);
+            target = 1;
+            while ( isempty(find(particle==c))==0 ); % Verificar se cidade ja esta na particula...
+                neighbours = distances(particle(j-1),:);
+                neighbours( neighbours==0 ) = inf;
+                [~,idx]=sort(neighbours(:));
+                c = idx(k);
+                k = k+1;
+            end;
+            particle(j) = c;
+        end;
+        X(i,:) = particle;
+    end;
+
+    %load 'X.mat';
 
     %% Iteracoes...
     for t=1:numIter;
         
+        fprintf('Iter %d: - gBest: %.2f \n', t, gBestScore);
+        
         % Avaliar particulas...
         for i=1:swarmSize;
             cost = Fitness(X(i,:), distances);
+            F(i) = cost;
             if(pBestScore(i)>cost)
                 pBestScore(i)=cost;
                 pBest(i,:)=X(i,:);
@@ -65,44 +70,55 @@
                 gBest=X(i,:);
             end;
         end;
+        
+        % Melhor e pior local (por iteracao)
+        [bestCost, idxBest] = min(X);
+        best = X(idxBest, :);
+        [worstCost, idxWorst] = max(X);
+        worst = X(idxWorst, :);
 
         % Atualizar particulas (velocidade e posicao)...        
         for i=1:swarmSize;
             
-%             % Inversao
-%             invI = randi([1 floor(rows/2)]);
-%             invF = randi([invI+1 rows]);
-%             X(i,invI:invF) = fliplr(X(i,invI:invF));
-
             % Coeficientes de confianca...
             w = c1*rand(1);
             alpha = c2*rand(1);
             beta = c3*rand(1);
        
             % Deslocamento...
-            Vd = Memory(V{i}, w);
+            X(i,:) = LocalSearch(X(i,:), distances);
+% % %                % Inversao
+% % %              invI = randi([1 floor(rows/2)]);
+% % % IGNORE!      invF = randi([invI+1 rows]);
+% % %              Xinv = fliplr(X(i,invI:invF));
+% % %              Vinv = SwapOperators(X(i,:), Xinv);   
+% % %              Vd = Memory(Vinv, w);
             
             % Operadores de troca... 
              % (pBest - Xi)
-            Vp = SwapOperators(pBest(i,:), X(i,:));
+            Vp = SwapOperators(X(i,:), pBest(i,:));
             Vp = Memory(Vp, alpha);
              % (gBest - Xi)
-            Vg = SwapOperators(gBest, X(i,:));
+            Vg = SwapOperators(X(i,:), gBest);
             Vg = Memory(Vg, beta);
             
             %% Atualizando particula...
             % Velocidade....
-            V{i} = [Vd; Vp; Vg];
+            %V{i} = Vg;
+            V{i} = [Vp; Vg];
             %V{i} = unique(V{i},'rows','stable');
             % Controle de velocidade...
-            if size(V{i},1) > Vmax;
-                V{i} = V{i}(1:Vmax,:);
+            if Vmax>0;
+                if size(V{i},1) > Vmax;
+                    %V{i} = V{i}(1:Vmax,:);
+                    V{i} = V{i}(randperm(Vmax),:);
+                end;
             end;
 
             % Posicao
             X(i, :) = Movement(X(i,:), V{i});
             
-            % Resetar se for melhor globl
+            % Resetar se for melhor global
             if isequal(X(i, :), gBest);% || isequal(X(i, :), pBest(i, :));
               X(i, :) = randperm(rows, rows);
             end;
