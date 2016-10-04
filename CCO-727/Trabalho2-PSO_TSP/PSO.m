@@ -21,8 +21,8 @@
     beta = alpha; % Fator social - c3
     %%% INTUICAO sobre coeficientes
     %%% w = 0.02, alpha = 1.5 e beta = 1.5. Neste caso o
-    %%% algoritmo faria com que suas partículas pouco procurassem por regiões inexploradas do
-    %%% espaço de busca tendendo a seguir as melhores posições já encontradas até o momento pelo
+    %%% algoritmo faria com que suas particulas pouco procurassem por regioes inexploradas do
+    %%% espaco de busca tendendo a seguir as melhores posicoes ja encontradas ate o momento pelo
     %%% algoritmo.
     %%%%
     
