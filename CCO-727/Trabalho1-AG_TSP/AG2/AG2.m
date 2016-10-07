@@ -149,6 +149,5 @@
     %    save(sprintf('tests/AG2/Pop%d-Gen%d/optRoute-%s.mat',popSize,numGen,datestr), 'optRoute');
     %    save(sprintf('tests/AG2/Pop%d-Gen%d/distHistory-%s.mat',popSize,numGen,datestr), 'distHistory');
         
-    %% !!!!! Fim dos testes pro relatorio !!!!!
-    
 %end;
+    %% !!!!! Fim dos testes pro relatorio !!!!!

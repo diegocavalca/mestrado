@@ -33,10 +33,10 @@ function [particle,cost] = LocalSearch(particle, w, distances)
     global n 
     n = length(particle);
     %e = ceil( (n/10)*w );
-    e= ceil( n*w );
+    m = ceil( n * w ); % Fator de limitação de trocas (arestas)
     
     for i=1:n
-        for j=1:e%n-3
+        for j=1:m;
             if change_in_distance(particle,i,j,distances) < 0 
                 particle = swap_edge(particle,i,j);
             end
