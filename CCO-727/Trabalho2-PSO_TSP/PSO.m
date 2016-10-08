@@ -21,7 +21,7 @@
     numIter = 10;
     cPr = 0.2;
     w = 0.9; % Fator de inercia 
-    alpha = 0.5; % Fator individual - c1
+    alpha = 0.8; % Fator individual - c1
     beta = alpha; % Fator social - c2
     
     X = zeros(swarmSize, rows); % Posicao (Particulas)
