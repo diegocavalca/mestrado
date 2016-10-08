@@ -32,7 +32,6 @@ function [particle,cost] = LocalSearch(particle, w, distances)
 
     global n 
     n = length(particle);
-    %e = ceil( (n/10)*w );
     m = ceil( n * w ); % Fator de limitação de trocas (arestas)
     
     for i=1:n
@@ -45,8 +44,7 @@ function [particle,cost] = LocalSearch(particle, w, distances)
     cost = Fitness(particle,distances);
 
 
- % Additional subfunctions for solving via 2-Opt algorithm (Croes, 1958)
-
+% Additional subfunctions for solving via 2-Opt algorithm (Croes, 1958)
 function result = change_in_distance(particle,i,j,distances)
 before=distances(particle(r(i)),particle(r(i+1)))+distances(particle(r(i+1+j)),particle(r(i+2+j)));
 after=distances(particle(r(i)),particle(r(i+1+j)))+distances(particle(r(i+1)),particle(r(i+2+j)));

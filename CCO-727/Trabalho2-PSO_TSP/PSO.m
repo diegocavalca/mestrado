@@ -1,6 +1,6 @@
-%% Iteracoes de teste - gerando dados do relatorio
-for tst = 1:10;
-%% Fim dos testes pro relatorio
+% %% Iteracoes de teste - gerando dados do relatorio
+% for tst = 1:10;
+% %% Fim dos testes pro relatorio
     
     clear;
     clc;
@@ -16,23 +16,16 @@ for tst = 1:10;
     % Dimensoes do dataset
     [rows,columns]=size(distances); 
         
-    %% Variaveis do PSO...
+    %% Variaveis do PSO (já definido os melhores possíveis, de acordo com o relatório)...
     swarmSize = 30;
     numIter = 10;
-    cPr = 1;
-    w = 0.2; % Fator de inercia 
-    alpha = 0.2; % Fator individual - c1
-    beta = alpha; % Fator social - c1
-    %%% INTUICAO sobre coeficientes
-    %%% w = 0.02, alpha = 1.5 e beta = 1.5. Neste caso o
-    %%% algoritmo faria com que suas particulas pouco procurassem por regioes inexploradas do
-    %%% espaco de busca tendendo a seguir as melhores posicoes ja encontradas ate o momento pelo
-    %%% algoritmo.
-    %%%%
+    cPr = 0.2;
+    w = 0.9; % Fator de inercia 
+    alpha = 0.5; % Fator individual - c1
+    beta = alpha; % Fator social - c2
     
     X = zeros(swarmSize, rows); % Posicao (Particulas)
     V = cell(1, swarmSize); % Velocidade (Permutacoes)
-    %F = inf(swarmSize, 1); % Custos (Funcao objetivo)
     gBestScore = inf;
     pBestScore = inf(swarmSize, 1);     
 
@@ -94,25 +87,25 @@ for tst = 1:10;
     
     timeExec = toc;
     
-    %% !!!!! Iteracoes de teste - gerando dados do relatorio !!!!!
-
-       % Salvar figuras...
-       folderResults = sprintf('Results/Iter_%d-Swarm_%d-Cpr_%.2f-W_%.2f-C_%.2f/', numIter, swarmSize, cPr, w, beta);
-       mkdir(folderResults);
-       DateString = datestr(datetime('now'));
-       date = str2num(datestr(now,'ddmm'));
-       hour = str2num(datestr(now,'HHMM'));
-       datestr = datestr(now,'ddmm-HHMMSS');
-       saveas(figureBestRoute, sprintf('%s/bestRoute-COST_%.2f-%s.jpg', folderResults, gBestScore, datestr)); % BestRoute
-       saveas(figureHistory, sprintf('%s/distHistory-COST_%.2f-%s.jpg', folderResults, gBestScore, datestr)); % History
-       
-       % Salvar dados do teste...
-       dataSummary = [date hour numIter swarmSize w alpha beta cPr gBestScore timeExec];
-       dlmwrite('Results/Summary.csv', dataSummary, '-append', 'delimiter', ';');
-    
-       % Variaveis
-       save(sprintf('%s/gBest-%s.mat', folderResults, datestr), 'gBest');
-       save(sprintf('%s/histBest-%s.mat', folderResults, datestr), 'histBest');
-        
-end;
-    %% !!!!! Fim dos testes pro relatorio !!!!!
+%     %% !!!!! Iteracoes de teste - gerando dados do relatorio !!!!!
+% 
+%        % Salvar figuras...
+%        folderResults = sprintf('Results/Iter_%d-Swarm_%d-Cpr_%.2f-W_%.2f-C_%.2f/', numIter, swarmSize, cPr, w, beta);
+%        mkdir(folderResults);
+%        DateString = datestr(datetime('now'));
+%        date = str2num(datestr(now,'ddmm'));
+%        hour = str2num(datestr(now,'HHMM'));
+%        datestr = datestr(now,'ddmm-HHMMSS');
+%        saveas(figureBestRoute, sprintf('%s/bestRoute-COST_%.2f-%s.jpg', folderResults, gBestScore, datestr)); % BestRoute
+%        saveas(figureHistory, sprintf('%s/distHistory-COST_%.2f-%s.jpg', folderResults, gBestScore, datestr)); % History
+%        
+%        % Salvar dados do teste...
+%        dataSummary = [date hour numIter swarmSize w alpha beta cPr gBestScore timeExec];
+%        dlmwrite('Results/Summary.csv', dataSummary, '-append', 'delimiter', ';');
+%     
+%        % Variaveis
+%        save(sprintf('%s/gBest-%s.mat', folderResults, datestr), 'gBest');
+%        save(sprintf('%s/histBest-%s.mat', folderResults, datestr), 'histBest');
+%         
+% end;
+%     %% !!!!! Fim dos testes pro relatorio !!!!!
