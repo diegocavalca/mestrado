@@ -1,30 +1,31 @@
 % Importando dados do benchmark
-tempo_jobs = importdata('benchmarks/tempos8x8.txt');
-operacoes_jobs = importdata('benchmarks/op8x8.txt');
+Tij = importdata('benchmarks/tempos8x8.txt'); % Tempos das operacoes
+Oij = importdata('benchmarks/op8x8.txt'); % Operacoes por job
 
 % Variáveis do problema
-[n,m] = size(tempo_jobs);
+[n,m] = size(Tij);
 
-particulas = 15; % tamanho da nuvem...
+% Configuracoes PSO
+swarmSize = 15; % tamanho da nuvem...
 
 % Nuvem (populacao) e solucao inicial
-X = ones(particulas, n);
+X = ones(swarmSize, n);
 
-% Roteamento - Define as operações para quais máquinas (respeitando)
+% ROTEAMENTO - Define as operações para quais máquinas (respeitando)
 for i=1:n;
-    % Maquinas factives para Oi,j
-    fMach = find(tempo_jobs(i,:));
-    % Atribuir máquinas para cada Oi,j (aleatorio)
-    X(:,i) = fMach(randi(numel(fMach), particulas, 1));
+    % Maquinas factives para Oij
+    fMach = find(Tij(i,:));
+    % Atribuir máquinas para cada Oij (aleatorio)
+    X(:,i) = fMach(randi(numel(fMach), swarmSize, 1));
 end;
 
-% Planejamento - operacoes das máquinas pra cada solução (linha de X)...
-M = cell(size(X));
-for i=1:particulas;
-    for j=1:m;
-        % Maquinas factives para Oi,j
-        fOper = find( X(i,:) == m );
-        
+% SEQUENCIAMENTO - operacoes das máquinas pra cada solução (linha de X)...
+M = cell(swarmSize, m);
+for i=1:swarmSize;
+    for mach=1:m;
+        % Operacoes Oij (indices em X) atribuidas para a Maquina Mj em Xi
+        fOper = find( X(i,:) == mach );
+        M{i,mach} = fOper;
     end;    
 end;
 
