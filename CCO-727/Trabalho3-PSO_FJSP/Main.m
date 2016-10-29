@@ -7,6 +7,7 @@ Oij = importdata('benchmarks/op8x8.txt'); % Operacoes por job
 
 % Configuracoes PSO
 swarmSize = 15; % tamanho da nuvem...
+nIter = 10; % Iteracoes do algoritmo...
 
 % Nuvem (populacao) e solucao inicial
 X = ones(swarmSize, n);
@@ -27,6 +28,16 @@ for mach=1:m;
     M{1,mach} = fOper;
 end;    
 
+% Avaliacao da solução inicial
+[solucao, gantt, gantt_op] = Fitness(M, Tij, Oij, m, n);
+
+% PSO
+%[tempos, melhorSolucao] = PSO(Tij, m, n, swarmSize, nIter, Oij);
+
+% Melhor solucao encontrada pelo PSO
+%[solucao, gantt, gantt_op] = Fitness(melhorSolucao, Tij, Oij, m, n);
+
+Gantt;
 %M = cell(swarmSize, m);
 %for i=1:swarmSize;
 %    for mach=1:m;

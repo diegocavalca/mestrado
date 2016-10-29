@@ -72,9 +72,9 @@ function [solucao,gantt,gantt_op] = fitnessganttSA(tempo_jobs, m, alternativa_pr
     end
     %se houve deadlock retorna 0 senao o makespan
     if sum(stage) < sum(alternativa_produtos+1)
-    solucao = 0;
+        solucao = 0;
     else
-    solucao = max(solucoes);
+        solucao = max(solucoes);
     end
  
 end
