@@ -40,4 +40,4 @@ function Gantt (schedule, scheduleOpsLabels, makespan, mSize)
       end
   end
 
-end;
+end
