@@ -8,11 +8,16 @@ Oij = importdata('benchmarks/op8x8.txt'); % Operacoes por job
 % Configuracoes PSO
 swarmSize = 15; % tamanho da nuvem...
 nIter = 10; % Iteracoes do algoritmo...
+c1 = 1.4944;
+c2 = 1.4944;
+w = 0.9;
 
 % Nuvem (populacao) e solucao inicial
 X = ones(swarmSize, n);
+f = V;
 
-% ROTEAMENTO - Define as operacoes para quais maquinas (respeitando)
+
+% ROTEAMENTO - Gerar populacao do enxame (roteamentos)
 for i=1:n;
     % Maquinas factives para Oij
     fMach = find(Tij(i,:));
@@ -20,24 +25,60 @@ for i=1:n;
     X(:,i) = fMach(randi(numel(fMach), swarmSize, 1));
 end;
 
-% SEQUENCIAMENTO - operacoes das maquinas pra cada solucao (linha de X)...
-M = cell(1, m);
-for mach=1:m;
-    % Operacoes Oij (indices em X) atribuidas para a Maquina Mj em Xi
-    fOper = find( X(1,:) == mach );
-    M{1,mach} = fOper;
-end;    
+% Variaveis objetivo
+pBest = zeros(swarmSize, n);
+pBestCost = Inf(1, swarmSize);
+gBest = zeros(1, n);
+gBestCost = Inf;
 
-% Avaliacao da solução inicial
-[solucao, gantt, gantt_op] = Fitness(M, Tij, Oij, m, n);
+% AVALIACAO INICIAL dos individuos (roteamentos)
+for i=1:swarmSize;
+  
+  % Inidividuo (Roteamento)
+  R = X(i, :);
+  
+  % SEQUENCIAMENTO a partir do roteamento R
+  M = Scheduler(R, m); 
+  
+  % FITNESS
+  [makespan, schedule, scheduleOpsLabels] = Fitness(M, Tij, Oij, m, n);
+  pBestCost(i) = makespan;
+  pBest(i, :) = R;
 
-% PSO
-%[tempos, melhorSolucao] = PSO(Tij, m, n, swarmSize, nIter, Oij);
+end;
 
-% Melhor solucao encontrada pelo PSO
-%[solucao, gantt, gantt_op] = Fitness(melhorSolucao, Tij, Oij, m, n);
+% Melhor global (inicial)
+[gBestCost, idx] = min(pBestCost);
+gBest = pBest(idx, :);
 
-Gantt;
+% PASSO 3
+for iter=1:nIter;
+
+  % Atualizar particulas...
+  for i=1:swarmSize;
+  
+    r1 = rand(particulas, 1);
+    r2 = rand(particulas, 1);
+    %v = w*v + c1 * bsxfun(@times, r1, melhores_locais - x) + ...
+    %  c2 * bsxfun(@times, r2, (bsxfun(@minus, melhores_globais, x)));
+    v = w*v + c1 * bsxfun(@times, r1, melhores_locais - x) + c2 * bsxfun(@times, r2, aux_melhores - x);
+  
+  end;
+  
+  
+end;
+
+
+% SEQUENCIAMENTO - (inicial) operacoes das maquinas pra cada solucao (linha de X)...
+%M = Scheduler(X(1,:), m);
+
+% Avaliacao da solucao inicial
+%[makespan, schedule, scheduleOpsLabels] = Fitness(M, Tij, Oij, m, n);
+
+
+%Gantt(schedule, scheduleOpsLabels, makespan, m);
+
+
 %M = cell(swarmSize, m);
 %for i=1:swarmSize;
 %    for mach=1:m;
