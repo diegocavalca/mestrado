@@ -20,7 +20,7 @@ c2 = c1;
 t0 = 3;
 tEnd = 0.01;
 B = 0.9;
-v = zeros(1, n);
+v = zeros(swarmSize, n);
 vMin = 1;
 vMax = m;
 
@@ -36,9 +36,18 @@ Mij = MachinesPrior(Tij);
 % ROTEAMENTO - Gerar populacao do enxame (roteamentos)
 for i=1:n;
     
+%     % Maquinas factiveis na ordem de melhor >> pior, 
+%     %selecionadas de modo estocastico (detalhes na funcao
+%     [machines, ~] = MachinesFeasible(i, swarmSize, Tij(i, :), Mij);
+%     probs = ones(1, length(machines))*1/length(machines);
+%     
+%     % Maquinas factiveis resultantes
+%     machines = randsample(machines, swarmSize, true, probs);
+%     % Indices de prioridade das maquinas factives
+%     [~, priorities] = ismember(machines, Mij(i, :));
     % Maquinas factiveis na ordem de melhor >> pior, 
-    %selecionadas de modo estocastico (detalhes na funcao
     [machines, priorities] = MachinesFeasible(i, swarmSize, Tij(i, :), Mij);
+
     X(:, i) = machines;
     P(:, i) = priorities;
     
@@ -70,45 +79,95 @@ end;
 [gBestCost, idx] = min(pBestCost);
 gBest = pBest(idx, :);
 
-% % % % PASSO 3
-% % % for iter=1:nIter;
-% % % 
-% % %   % Atualizar particulas...
-% % %   for i=2:swarmSize;
-% % %   
-% % %     % Fator de inercia
-% % %     w = wMax - ( (wMax - wMin)/nIter ) * iter;
-% % % 
-% % %     r1 = rand(swarmSize, 1);
-% % %     r2 = rand(swarmSize, 1);
-% % %     %v = w*v + c1 * bsxfun(@times, r1, melhores_locais - x) + ...
-% % %     %  c2 * bsxfun(@times, r2, (bsxfun(@minus, melhores_globais, x)));
-% % %     x = ParticlePosition(X(i,:), Mij);
-% % %     
-% % %     % Velocidade
-% % %     v = w*v + c1*rand()*(pBest(i,:) - x) + c2*rand()*(gBest - x);
-% % %     
-% % %     % Posicao
-% % %     x_aux = round(x + v);
-% % %     x_aux(x_aux < vMin) = vMin;
-% % %     x_aux(x_aux > vMax) = vMax;
-% % %     
-% % %     % Avaliacao...  
-% % %     M = Scheduler(x_aux, m); % SEQUENCIAMENTO a partir do roteamento R
-% % %     [makespan, ~, ~] = Fitness(M, Tij, Oij, m, n);
-% % %     if(pBestCost(i)>makespan)
-% % %         pBestCost(i)=makespan;
-% % %         pBest(i,:)=x_aux;
-% % %     end
-% % %     if(gBestCost>makespan)
-% % %         gBestCost=makespan;
-% % %         gBest=x_aux;
-% % %     end;
-% % % 
-% % %   end;
-% % %   
-% % % end;
+% PASSO 3
+nIter = 1;
+for iter=1:nIter;
+  
+  %status = round(iter*100/(nIter*swarmSize))/2;
+  fprintf('Completed: %d/%d (gBest: %d)...\n', iter, nIter, gBestCost);
+  
+  % Nova nuvem...
+  x = P;
+  w = wMax - ( (wMax - wMin)/nIter ) * iter;
+  r1 = rand(swarmSize, 1);
+  r2 = rand(swarmSize, 1);
+  v = w*v + c1 * bsxfun(@times, r1, pBest - x) + c2 * bsxfun(@times, r2, repmat(gBest,swarmSize,1) - x);
+  
+  x = round(x + v);
+  
+  % Validar vMin e vMax
+  for i=1:n;
+      % Maquinas factives (4 melhores)
+      fMach = find(Tij(i, :));% Maquinas factives para operacao Oij (tempo > 0)
+      machinesOp = Mij(i, ismember(Mij(i, :), fMach));% Maquinas factiveis na ordem de melhor >> pior
+      machinesOp = machinesOp(1:length(machinesOp)-4);
+      [~, priorities] = ismember(machinesOp, Mij(i, :));
+      
+      vMin = priorities(1);
+      vMax = priorities(end);
+      
+      x_aux = x(:, i);
+      x_aux(x_aux < vMin) = vMin;
+      x_aux(x_aux > vMax) = vMax;
+      x(:, i) = x_aux;      
+  end;
+  
+  P = x;  
+  X = ProcessingMachines(P,Mij);
 
+  % Avaliar particulas
+  for i=1:swarmSize;
+      
+      % FITNESS
+      R = X(i, :);
+      M = Scheduler(R, m); 
+      [makespan, ~, ~] = Fitness(M, Tij, Oij, m, n);
+      if(makespan < pBestCost(i));
+          pBestCost(i) = makespan;
+          pBest(i, :) = R;
+      end;
+      if(makespan < gBestCost);
+          gBestCost = makespan;
+          gBest = R;
+      end;
+      
+  end;
+  
+%   
+%   % Atualizar particulas...
+%   for i=2:swarmSize;
+%   
+%     % Fator de inercia
+%     w = wMax - ( (wMax - wMin)/nIter ) * iter;
+%     r1 = rand(swarmSize, 1);
+%     r2 = rand(swarmSize, 1);
+%     %v = w*v + c1 * bsxfun(@times, r1, melhores_locais - x) + ...
+%     %  c2 * bsxfun(@times, r2, (bsxfun(@minus, melhores_globais, x)));
+%     x = ParticlePosition(X(i,:), Mij);
+%     
+%     % Velocidade
+%     v = w*v + c1*r1*(pBest(i,:) - x) + c2*r2*(gBest - x);
+%     
+%     % Posicao
+%     x_aux = round(x + v);
+%     x_aux(x_aux < vMin) = vMin;
+%     x_aux(x_aux > vMax) = vMax;
+%     
+%     % Avaliacao...  
+%     M = Scheduler(x_aux, m); % SEQUENCIAMENTO a partir do roteamento R
+%     [makespan, ~, ~] = Fitness(M, Tij, Oij, m, n);
+%     if(pBestCost(i)>makespan)
+%         pBestCost(i)=makespan;
+%         pBest(i,:)=x_aux;
+%     end
+%     if(gBestCost>makespan)
+%         gBestCost=makespan;
+%         gBest=x_aux;
+%     end;
+% 
+%   end;
+  %clc;
+end;
 
 % SEQUENCIAMENTO - (inicial) operacoes das maquinas pra cada solucao (linha de X)...
 %M = Scheduler(X(1,:), m);
