@@ -1,6 +1,4 @@
 % Importando dados do benchmark
-global Tij;
-global Oij;
 Tij = importdata('benchmarks/tempos8x8.txt'); % Tempos das operacoes
 Oij = importdata('benchmarks/op8x8.txt'); % Operacoes por job
 
@@ -84,24 +82,38 @@ gBestCost = Inf;
 
 % AVALIACAO INICIAL dos individuos (roteamentos)
 for i=1:swarmSize;
-   
-    % Simulated Annealing (Avaliacao da particula)
-    [M, makespan, X(i, :)] = SA(X(i, :), @Scheduler, @Fitness);
-
-    % FITNESS
-    pBestCost(i) = makespan;
-    pBest(i, :) = X(i, :);
   
-%   % Individuo (Roteamento)
-%   R = X(i, :);
-%   
-%   % SEQUENCIAMENTO a partir do roteamento R
-%   M = Scheduler(R, m); 
-%   
-%   % FITNESS
-%   [makespan, schedule, scheduleOpsLabels] = Fitness(M, Tij, Oij, m, n);
-%   pBestCost(i) = makespan;
-%   pBest(i, :) = R;
+  % Individuo (Roteamento)
+  R = X(i, :);
+  
+  % SEQUENCIAMENTO a partir do roteamento R
+  M = Scheduler(R, m); 
+  
+  % Simulated Annealing (Avaliacao da particula)
+  
+  
+  % FITNESS
+  global wMax;
+wMax = 1.2;
+
+global wMin;
+wMin = 0.4;
+
+global c1;
+c1 = 2;
+
+global c2;
+c2 = c1;
+
+global t0;
+t0 = 3;
+
+global tEnd;
+tEnd = 0.01;
+
+global B;
+  pBestCost(i) = makespan;
+  pBest(i, :) = R;
 
 end;
 
@@ -145,47 +157,32 @@ for iter=1:nIter;
   end;
   
   P = x;  
-  X = ProcessingMachines(P, Mij);
+  X = ProcessingMachines(P,Mij);
 
   % Avaliar particulas
   for i=1:swarmSize;
       
       % Calcular SA
-    % Simulated Annealing (Avaliacao da particula)
-    [M, makespan, X(i, :)] = SA(X(i, :), @Scheduler, @Fitness);
-
-    % FITNESS
-    pBestCost(i) = makespan;
-    pBest(i, :) = X(i, :);
-    
-    if(makespan < pBestCost(i));
-        pBestCost(i) = makespan;
-        pBest(i, :) = X(i, :);
-    end;
-    if(makespan < gBestCost);
-        gBestCost = makespan;
-        gBest = X(i, :);
-    end;
       
-%       % FITNESS
-%       R = X(i, :);
-%       M = Scheduler(R, m); 
-%         
-%         %         % PairExchange
-%         %         for p=1:size(M,2);
-%         %             N{p} = fliplr(M{p});
-%         %         end;
-%         %         [makespan, ~, ~] = Fitness(N, Tij, Oij, m, n);
-%         %         if(makespan==0); [makespan, ~, ~] = Fitness(M, Tij, Oij, m, n); end;
-%         
-%       if(makespan < pBestCost(i));
-%           pBestCost(i) = makespan;
-%           pBest(i, :) = R;
-%       end;
-%       if(makespan < gBestCost);
-%           gBestCost = makespan;
-%           gBest = R;
-%       end;
+      % FITNESS
+      R = X(i, :);
+      M = Scheduler(R, m); 
+        
+        %         % PairExchange
+        %         for p=1:size(M,2);
+        %             N{p} = fliplr(M{p});
+        %         end;
+        %         [makespan, ~, ~] = Fitness(N, Tij, Oij, m, n);
+        %         if(makespan==0); [makespan, ~, ~] = Fitness(M, Tij, Oij, m, n); end;
+        
+      if(makespan < pBestCost(i));
+          pBestCost(i) = makespan;
+          pBest(i, :) = R;
+      end;
+      if(makespan < gBestCost);
+          gBestCost = makespan;
+          gBest = R;
+      end;
       
   end;
   
@@ -234,6 +231,7 @@ end;
 % Plotando gBest
 [makespan, schedule, scheduleOpsLabels] = Fitness(Scheduler(gBest, m), Tij, Oij, m, n);
 Gantt(schedule, scheduleOpsLabels, makespan, m);
+
 
 %M = cell(swarmSize, m);
 %for i=1:swarmSize;
