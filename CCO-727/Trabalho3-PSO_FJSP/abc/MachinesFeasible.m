@@ -1,4 +1,4 @@
-function [ machines, priorities ] = MachinesFeasible( op, swarmSize, Tij, Mij, numDiscards )
+function [ machines, priorities ] = MachinesFeasible( op, swarmSize, Tij, Mij )
 
     % Maquinas factives para operacao Oij (tempo > 0)
     fMach = find(Tij);
@@ -11,7 +11,7 @@ function [ machines, priorities ] = MachinesFeasible( op, swarmSize, Tij, Mij, n
     
     % Estocastico = eliminar ultima maquina (mais lenta pra Oij) e atribuir
     % maquina de maneira que todas tenham mesma probabilidade
-    machinesOp = machinesOp(1:length(machinesOp)-numDiscards);
+    machinesOp = machinesOp(1:length(machinesOp)-4);
     
     %%% priorities = zeros(size(machinesOp));
     %%% % Indices de prioridade das maquinas factives

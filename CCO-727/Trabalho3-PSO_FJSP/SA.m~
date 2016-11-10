@@ -1,4 +1,4 @@
-function [ M, makespan, R ] = SA( S, Scheduler, Fitness, Neighbor )
+function [ X, makespan, M ] = SA( X, Scheduler, Fitness, Neighbor )
 
     % S = Sequenciamento solucao
 
@@ -12,7 +12,7 @@ function [ M, makespan, R ] = SA( S, Scheduler, Fitness, Neighbor )
     global B;
 
     % SOLUCAO - SEQUENCIAMENTO a partir do roteamento X
-    S = Scheduler(S, m); 
+    S = Scheduler(X, m); 
     [costS, ~, ~] = Fitness(S, Tij, Oij, m, n);
     
     iterations = 0;
@@ -26,7 +26,7 @@ function [ M, makespan, R ] = SA( S, Scheduler, Fitness, Neighbor )
 
             %se der deadlock, força uma nova sequenciação
             while costS_ == 0 %|| costS_ >= costS
-                S_ = Neighbor(S, m);
+                S_ = gerar_vizinho(S, m);
                 [costS_, ~, ~] = Fitness(S_, Tij, Oij, m, n);          
             end;   
             
@@ -39,26 +39,22 @@ function [ M, makespan, R ] = SA( S, Scheduler, Fitness, Neighbor )
                 
             end;
             %disp(S{1});
-            iterations = iterations + 1;
+            
         end;
         
         tK = B * tK;
         %disp(costS);
-        
     end;  
     
-    %disp(iterations);
-    
     % Retornos
-    M = S;
+    X = S;
     makespan = costS;
-    %disp(makespan);
     
     % Processar roteamento resultante a partir do sequenciamento S
-    R = zeros(1, n);
-    for i=1:size(M,2);
-        for j=1:size(M{i},2);
-            R(M{i}(j)) = i;
+    M = zeros(1, n);
+    for i=1:size(S,2);
+        for j=1:size(S{i},2);
+            M(S{i}(j)) = i;
         end;
     end;
 

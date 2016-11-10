@@ -1,0 +1,19 @@
+function [pScheduling] = Scheduler (Planning, mSize)
+
+    % Organizar planejamento para as operacoes
+    pScheduling = cell(1, mSize);
+    for mach=1:mSize;
+      % Operacoes Oij (indices em X) atribuidas para a Maquina Mj em Xi
+      fOper = find( Planning == mach );
+      pScheduling{1,mach} = fOper;
+    end;  
+    
+    
+    k = cell(1, m);
+    for i=1:m
+    k{i} = find(S==i);
+    end      
+
+    encode_ini = gen_encode_ini(k,alternativa_produtos,m);
+
+end

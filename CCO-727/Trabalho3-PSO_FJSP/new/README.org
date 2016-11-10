@@ -1,0 +1,247 @@
+** Running
+   - All tests
+     #+BEGIN_SRC octave
+       ALL_test_16t6m();
+       ALL_test_17t5m();
+     #+END_SRC
+   - TS
+     - source code file: TS.m
+     - All test files match TS_*
+     - example
+       #+BEGIN_SRC octave
+         iterations = 50;
+         m = 3;
+         n = 6;
+         J = [2, 3, 4, 6, 2, 2];
+         [costs, bestSol] = TS(J, m, n, 10, iterations, @cost, @getBestNeighbor);
+       #+END_SRC
+   - SA
+     - source code file: SA.m
+     - All test files match SA_*
+     - example
+       #+BEGIN_SRC octave
+         iterations = 50;
+         m = 3;
+         n = 6;
+         S = initSolution(m,n);
+         J = [2, 3, 4, 6, 2, 2];
+         sT = findStartTemp(J, m);
+         alpha = 0.85;
+         iterationsAtTemp = 2;
+         fT = sT*(alpha^(iterations/iterationsAtTemp));
+         [costs, bestSol] = SA(S, J, m, n, iterationsAtTemp, sT, fT, alpha, @cost, @gen_neighbor);
+       #+END_SRC
+   - GA
+     - source code file: GA.m
+     - All test files match GA_*
+     - example
+       #+BEGIN_SRC octave
+         iterations = 50;
+         m = 3;
+         n = 6;
+         J = [2, 3, 4, 6, 2, 2];
+         [costs, bestSol] = GA(J, m, iterations);
+       #+END_SRC
+   - PSO
+     - source code file: PSO.m PSO_lbest.m (better performance)
+     - All test files match PSO_*
+     - example
+       #+BEGIN_SRC octave
+         iterations = 50;
+         m = 3;
+         n = 6;
+         J = [2, 3, 4, 6, 2, 2];
+         [costs, bestSol] = PSO_lbest(J, m, n, 1500, iterations, @cost);
+       #+END_SRC
+   - ACO
+     - source code file: ACO.m
+     - All test files match ACO_*
+     - example
+       #+BEGIN_SRC octave
+         iterations = 50;
+         m = 3;
+         n = 6;
+         J = [2, 3, 4, 6, 2, 2];
+         ants = 5;
+         [costs, bestSol] = ACO(J, m, n, ants, iterations, 0.2, @cost);
+       #+END_SRC
+** Problem Description
+
+   Job shop scheduling is an optimization problem in which n jobs J1,
+   J2, ..., Jn of varying sizes are given. These jobs need to be
+   scheduled on m identical machines, while trying to minimize the
+   makespan. The makespan is the total length of the schedule (that
+   is, when all the jobs have finished processing).
+
+** Problem Formulation
+*** Variables
+    - n, number of Jobs
+    - m, number of identical Machine
+    - J, an array of each Jobs' weight
+    - S, an array of each Jobs' Schedule
+*** Constraints
+    - m > 1
+    - n > m
+    - \forall s \in S, 1 <= s <= m
+*** Cost Function
+
+    Time takes the longest scheduled machine to finish. See cost.m
+
+*** Goals
+    - Minimize cost function
+    - Minimize number of iterations for each algorithm
+    - Find the best algorithm for the problem
+*** Simple Example
+    - J = (2,3,4,6,2,2)
+    - S = (1,2,2,3,1,1)
+    - Cost = 7
+    - This setup is optimal
+** Tabu Search
+*** Neighbors of each schedule
+
+    Each schedule will have (m-1)*n neighbors, where m is the number
+    of machines, and n is the number of jobs. Neighbors will only have
+    one job scheduled on a different machine.
+*** Finding the best neighbor
+
+    In order the find the neighbor with the lowest cost, the algorithm
+    will loop through every  valid neighbor and evaluate its cost. The
+    neighbor with the lowest cost will be selected as the best neighbor.
+
+*** Tabulist
+    - The list length of the tabulist is user-defined.
+    - The tabulist acts like a queque (first in first out)
+    - The oldest move will be deleted when a new move is appended.
+    - A new move is appended every time after finding a best neighbor.
+
+** Simulated Annealing
+*** Neighbors of each schedule
+
+    Each schedule will have (m-1)*n neighbors, where m is the number
+    of machines, and n is the number of jobs. Neighbors will only have
+    one job scheduled on a different machine.
+
+*** Finding a suitable start temperature
+    - Assume the max change is the MAX of
+      - total time of all job divide by number of machines.
+      - max time of a single job.
+    - Formula to find the max
+      - Temp_start = -1 * max_change / ln(p_0), where p_0 is 0.85
+    - Start temperature is not calculated within SA, need to be
+      calculated before execute the SA.
+      - see "findStartTemp" in "SA_test.m".
+*** Cooling Schedule
+    - Using geometric cooling schedule.
+    - Final temperature should close to zero but not equal to zero.
+    - alpha = 0.75 ~ 0.9 is commonly used.
+    - iteration
+      - a constant.
+      - number of iteration for each temperature.
+
+** Genetic Algorithm
+*** Overview
+
+    This part uses Genetic Algorithm to find the optimal solution for the job
+    scheduling problem. The process was inspired by the evolution of organisms
+    in natural. It employs random crossover, mutation and evolution to achieve
+    the goal of finding the optimal scheduling for a set of given jobs. This
+    process is based on the stock Genetic Algorithm given by the professor.
+
+*** Initial state
+    - The population size is set to 100
+    - Chromosome length depends on the range of the possible output
+    - Crossover Probability was set to 95%
+    - Mutation probability was set to 5%
+    - There will be 2 sites of mutation, when the mutation event occurs
+*** Crossover
+    - The crossover will exchange chromosome information at a specified
+      crossover site, which is generated randomly.
+    - After each crossover, evolve will be called, and the fittest of the older
+      population, or its offspring will survive.
+*** Evolve
+    - The evolve function will maximize the model function, 1/(1+cost), which is
+      the same as to minimize the cost
+    - The old and the new population will be compared, and the fitter of the two
+      will get passed to the next generation
+*** Mutate
+    - A given number mutation sites were generated, and the binary bits at the
+      generated mutation sites will be flipped
+    - Evolve function will be called, and the older generation and the newer
+      generation will be compared, the fittest of the two will get passed on to
+      the next generation
+** Particle Swarm Optimization
+*** Overview
+
+    This part uses the Ring Topology or lbest Particle Swarm Algorithm to find
+    optimal solution for job scheduling problem. Each particle is communicating
+    with four of its adjecent neighour. In each iteration, each particle
+    calculates its speed based on the best solution in its neighbour and its
+    personal best. Speed and location is defined in n dimensions.
+
+*** Initial state
+    - All particals starts with 0 speed at all n directions.
+    - All particals starts at location randomly assigned between 1 ~ m in all
+      dimensions.
+    - Local best solution is the same as partical's location
+    - Neighbor best solution in each particle is the best solution in four of
+      its neighours based on neighbor index.
+*** Local search criteria
+    - Speed is calculated based on each particle's personal best solution and
+      the best solution of its neighbor. c1 = 1.4944, c2 = 1.4944, w = 0.9,
+      v_{t+1}^{i} = w\times v_{t}^{i}+c_{1}r_{1}^{i}(pbest_{t}^{i}-x_{t}^{i})+
+      c_{2}r_{2}^{i}(Nbest_{t}^{i}-x_{t}^{i})
+    - The new solution is calculated by adding its previous location and its
+      new speed,
+      x_{t+1}^{i} = x_{t}^{i}+v_{t+1}^{i}
+    - When the new cost of the new location is smaller than a particle's local
+      best, it updates its local best and update its neighbour's neibour best
+      when applicable.
+    - Asynchronous update method is used to reduce run time load requirement,
+      neighbor best is updated when all partical finishes its calculation for
+      its current round.
+*** Termination Criteria
+    - The algorithm is terminated when set number of particals completes set
+      number of iterations.
+    - The number of particals determines the amount of exploration and the
+      amount of iterations determines the amount of exploitation.
+** Ant Colony Optimization
+*** Overview
+
+    This part uses Ant Colony System to find the optimal solution for the job
+    scheduling problem. The process is similar to find a shortest path between
+    two nodes on an weighted tree graph.
+
+*** Initial state
+    - All ants starts at layer 0 of the tree, which means no job has been
+      scheduled.
+    - All routes has initial pheromone of 1.
+    - pheromone will decrease 40% after each round.
+*** Local search criteria
+    - Local search depends on the number of pheromone, and the cost to move the
+      next level.
+    - The cost is calculate by the the extra number of time required for
+      including the next job in certain machine. The cost can be zero.
+    - Using experience vs Explore the new scheduling
+      1. a rand value is generate to compare with r_0
+      2. if the rand value is smaller than r_0, the local search will select the
+         route with max amount of pheromone
+      3. otherwise, it will do a roulette wheel selection based on ( pheromone /
+         (route-cost + 1))
+*** Pheromone deposit
+    - only the best ants in each round can deposit pheromone on its path.
+    - the number of pheromone deposited equals to ( 1 / best-ant-total-cost).
+** CPU Time Usage Data
+*** Total time for 1000 iterations
+|----------+-------+-------+-------+-------+-------|
+| data set |    GA |   PSO |    TS |    SA |   ACO |
+|----------+-------+-------+-------+-------+-------|
+| 16t6m    | 23.15 | 6.490 | 6.677 | 0.062 | 49.23 |
+| 17t5m    | 22.62 | 6.209 | 5.600 | 0.047 | 44.15 |
+|----------+-------+-------+-------+-------+-------|
+*** Time of Convergence
+|----------+-------+-------+-------+-------+-------|
+| data set |    GA |   PSO |    TS |    SA |   ACO |
+|----------+-------+-------+-------+-------+-------|
+| 16t6m    | 16.97 | 2.726 | 0.133 | 0.012 | 0.985 |
+| 17t5m    | 9.048 | 5.588 | 0.168 | 0.011 | 0.883 |
+|----------+-------+-------+-------+-------+-------|

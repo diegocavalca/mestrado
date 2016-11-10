@@ -1,27 +1,24 @@
 % Importando dados do benchmark
 global Tij;
 global Oij;
-Tij = importdata('benchmarks/tempos8x8.txt'); % Tempos das operacoes
-Oij = importdata('benchmarks/op8x8.txt'); % Operacoes por job
+Tij = importdata('../benchmarks/tempos8x8.txt'); % Tempos das operacoes
+Oij = importdata('../benchmarks/op8x8.txt'); % Operacoes por job
 
 % Variaveis do problema
 global n;
 global m;
 [n,m] = size(Tij);
 
-% Exemplo R = [2 5 6     3 4 7 5     7 4 1   2 6 3   1 7 6 7      3 8 2      3 8 4   1 2 8 3];
-% M    = [10 14 24] [1 11 20 25] [4 13 18 21 27] [5 9 23] [2 7] [3 12 16]
-% [6 8 15 17] [19 22 26]} Fitness(Scheduler(R,m),Tij,Oij,m,n)
-% Fitness(M) = 33
-% Mopt = [14 24 10] [1 11 25 20] [18 21 4 13 27] [9 5 23] [2 7] [12 16 3] [8 15 6 17] [19 22 26]
-% Fitness(Mopt) = 14
-
-fprintf('Inicializando o algoritmo..');
+% Roteiro R = [2 5 6     3 4 7 5     7 4 1   2 6 3   1 7 6 7      3 8 2      3 8 4   1 2 8 3];
+% M = [10 14 24] [1 11 20 25] [4 13 18 21 27] [5 9 23] [2 7] [3 12 16] [6 8 15 17] [19 22 26]}
+% M = [14 24 10] [1 11 25 20] [18 21 4 13 27] [9 5 23] [2 7] [12 16 3]	[8 15 6 17]	[19 22 26]
 global nIter;
-nIter = 3;
+nIter = 5;
 
 global swarmSize;
 swarmSize = 100;
+
+global W;
 
 global wMax;
 wMax = 1.2;
@@ -52,7 +49,6 @@ vMax = m;
 X = ones(swarmSize, n);
 P = X;
 %f = V;
-fprintf('. Ok! \n');
 
 % ORGANIZANDO MAQUINAS - Melhores tempos tem prioridade 1, maior tem
 % prioridade M, sendo M > 0, senao a maquina M nao eh factivel para Oij
@@ -60,9 +56,8 @@ global Mij;
 Mij = MachinesPrior(Tij);
 
 % ROTEAMENTO - Gerar populacao do enxame (roteamentos)
-fprintf('Gerando nuvem inicial.');
 for i=1:n;
-    fprintf('.');
+    
 %     % Maquinas factiveis na ordem de melhor >> pior, 
 %     %selecionadas de modo estocastico (detalhes na funcao
 %     [machines, ~] = MachinesFeasible(i, swarmSize, Tij(i, :), Mij);
@@ -73,13 +68,12 @@ for i=1:n;
 %     % Indices de prioridade das maquinas factives
 %     [~, priorities] = ismember(machines, Mij(i, :));
     % Maquinas factiveis na ordem de melhor >> pior, 
-    [machines, priorities] = MachinesFeasible(i, swarmSize, Tij(i, :), Mij, 4);
+    [machines, priorities] = MachinesFeasible(i, swarmSize, Tij(i, :), Mij, 1);
 
     X(:, i) = machines;
     P(:, i) = priorities;
-        
+    
 end;
-fprintf('. Ok! \n');
 
 % Variaveis objetivo
 pBest = zeros(swarmSize, n);
@@ -88,10 +82,8 @@ gBest = zeros(1, n);
 gBestCost = Inf;
 
 % AVALIACAO INICIAL dos individuos (roteamentos)
-fprintf('Avaliacao inicial das particulas.');
 for i=1:swarmSize;
-fprintf('.');
-% %     OTIMIZACAO INICIAL
+   
 % %     % Simulated Annealing (Avaliacao da particula)
 % %     [M, makespan, X(i, :)] = SA(X(i, :), @Scheduler, @Fitness, @gerar_vizinho);
 % % 
@@ -111,12 +103,16 @@ fprintf('.');
   pBest(i, :) = R;
 
 end;
-fprintf('. Ok!\n');
 
 % Melhor global (inicial)
 [gBestCost, idx] = min(pBestCost);
 gBest = pBest(idx, :);
 
+    cPr = 0.2;
+    w = 0.9; % Fator de inercia 
+    alpha = 0.8; % Fator individual - c1
+    beta = alpha; % Fator social - c2
+    
 % PASSO 3
 %nIter = 5;
 for iter=1:nIter;
@@ -130,35 +126,15 @@ for iter=1:nIter;
   % Avaliar particulas
   for i=1:swarmSize;
       
-    x = X(i, :);
-    V(i, :) = W*V(i,:) + c1 * rand() * (pBest(i,:) - x) + c2 * rand() * (gBest - x);
-
-    x = round(x + V(i, :));
-
-    % Validar vMin e vMax
-    for j=1:n;
-
-      % Maquinas factives (4 melhores)
-      fMach = find(Tij(j, :));% Maquinas factives para operacao Oij (tempo > 0)
-      machinesOp = Mij(j, ismember(Mij(j, :), fMach));% Maquinas factiveis na ordem de melhor >> pior
-      machinesOp = machinesOp(1:length(machinesOp)-4);
-      [~, priorities] = ismember(machinesOp, Mij(j, :));
-
-      vMin = priorities(1);
-      vMax = priorities(end);
-
-      x_aux = x(:, j);
-      x_aux(x_aux < vMin) = vMin;
-      x_aux(x_aux > vMax) = vMax;
-      x(:, j) = x_aux;    
-
-    end;
-
-    %P(i, :) = x;  
-    %X(i, :) = ProcessingMachines(P(i, :), Mij);
+    % Movimento da nuvem... 
+    [X(i,:), xCost] = LocalSearch(X(i,:), W); % M1
+    [X(i,:), xCost, gBest, gBestCost] = PathRelinking (X(i,:), xCost, gBest, gBestScore, beta, cPr); %gBest - M3
+    [X(i,:), xCost, pBest(i,:), pBestCost(i)] = PathRelinking (X(i,:), xCost, pBest(i,:), pBestCost(i), alpha, cPr); %pBest - M2  
 
     % Simulated Annealing (Avaliacao da particula)
-    [M, makespan, X(i, :)] = SA(X(i, :), @Scheduler, @Fitness, @gerar_vizinho);
+    %[M, makespan, X(i, :)] = SA(X(i, :), @Scheduler, @Fitness, @gerar_vizinho);
+    
+    makespan = Fitness(Scheduler(X(i,:), m), Tij, Oij, m, n);
 
     % FITNESS
     pBestCost(i) = makespan;

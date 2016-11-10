@@ -77,7 +77,12 @@ for i=1:n;
 
     X(:, i) = machines;
     P(:, i) = priorities;
-        
+    
+    % FITNESS
+    [makespan, ~, ~] = Fitness(Scheduler(X(:, i),m), Tij, Oij, m, n);
+    pBestCost(i) = makespan;
+    pBest(i, :) = X(i, :);
+    
 end;
 fprintf('. Ok! \n');
 
@@ -87,31 +92,28 @@ pBestCost = Inf(1, swarmSize);
 gBest = zeros(1, n);
 gBestCost = Inf;
 
-% AVALIACAO INICIAL dos individuos (roteamentos)
-fprintf('Avaliacao inicial das particulas.');
-for i=1:swarmSize;
-fprintf('.');
-% %     OTIMIZACAO INICIAL
-% %     % Simulated Annealing (Avaliacao da particula)
-% %     [M, makespan, X(i, :)] = SA(X(i, :), @Scheduler, @Fitness, @gerar_vizinho);
-% % 
-% %     % FITNESS
-% %     pBestCost(i) = makespan;
-% %     pBest(i, :) = X(i, :);
-  
-  % Individuo (Roteamento)
-  R = X(i, :);
-  
-  % SEQUENCIAMENTO a partir do roteamento R
-  M = Scheduler(R, m); 
-  
-  % FITNESS
-  [makespan, schedule, scheduleOpsLabels] = Fitness(M, Tij, Oij, m, n);
-  pBestCost(i) = makespan;
-  pBest(i, :) = R;
-
-end;
-fprintf('. Ok!\n');
+% % AVALIACAO INICIAL dos individuos (roteamentos)
+% for i=1:swarmSize;
+%    
+%     % Simulated Annealing (Avaliacao da particula)
+%     [M, makespan, X(i, :)] = SA(X(i, :), @Scheduler, @Fitness, @gerar_vizinho);
+% 
+%     % FITNESS
+%     pBestCost(i) = makespan;
+%     pBest(i, :) = X(i, :);
+%   
+% %   % Individuo (Roteamento)
+% %   R = X(i, :);
+% %   
+% %   % SEQUENCIAMENTO a partir do roteamento R
+% %   M = Scheduler(R, m); 
+% %   
+% %   % FITNESS
+% %   [makespan, schedule, scheduleOpsLabels] = Fitness(M, Tij, Oij, m, n);
+% %   pBestCost(i) = makespan;
+% %   pBest(i, :) = R;
+% 
+% end;
 
 % Melhor global (inicial)
 [gBestCost, idx] = min(pBestCost);
