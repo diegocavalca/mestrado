@@ -1,8 +1,15 @@
+tic;
+
 % Importando dados do benchmark
 global Tij;
 global Oij;
 Tij = importdata('benchmarks/tempos8x8.txt'); % Tempos das operacoes
 Oij = importdata('benchmarks/op8x8.txt'); % Operacoes por job
+
+% ORGANIZANDO MAQUINAS - Melhores tempos tem prioridade 1, maior tem
+% prioridade M, sendo M > 0, senao a maquina M nao eh factivel para Oij
+global Mij;
+Mij = MachinesPrior(Tij);
 
 % Variaveis do problema
 global n;
@@ -19,7 +26,7 @@ global nIter;
 nIter = 5;
 
 global swarmSize;
-swarmSize = 5;
+swarmSize = 20;
 
 global wMax;
 wMax = 1.2;
@@ -47,14 +54,23 @@ vMin = 1;
 vMax = m;
 
 % Nuvem (populacao) e solucao inicial
-X = ones(swarmSize, n);
+X = zeros(swarmSize, n);
+M = cell(swarmSize, m);
 P = X;
+O = X;
 %f = V;
 
-% ORGANIZANDO MAQUINAS - Melhores tempos tem prioridade 1, maior tem
-% prioridade M, sendo M > 0, senao a maquina M nao eh factivel para Oij
-global Mij;
-Mij = MachinesPrior(Tij);
+% Variaveis objetivo
+% Local
+pBestX = zeros(swarmSize, n);
+pBestM = M;
+pBestCost = Inf(1, swarmSize);
+% Global
+gBestX = zeros(1, n);
+gBestM = cell(1,m);
+gBestCost = Inf;
+
+Sol = zeros(1, n);
 
 % ROTEAMENTO - Gerar populacao do enxame (roteamentos)
 for i=1:n;
@@ -67,62 +83,67 @@ for i=1:n;
     
 end;
 
-% Variaveis objetivo
-pBest = zeros(swarmSize, n);
-pBestCost = Inf(1, swarmSize);
-gBest = zeros(1, n);
-gBestCost = Inf;
-
 % AVALIACAO INICIAL dos individuos (roteamentos)
 for i=1:swarmSize;
    
-%     % Simulated Annealing (Avaliacao da particula)
-%     [M, makespan, X(i, :)] = SA(X(i, :), @Scheduler, @Fitness, @gerar_vizinho);
+    % Simulated Annealing (Avaliacao da particula)
+    [M(i,:), makespan, X(i, :), ~] = SA(X(i, :), @Scheduler, @Fitness, @Neighbor);
+
+    % FITNESS
+    pBestCost(i) = makespan;
+    pBestX(i, :) = X(i, :);
+    pBestM(i, :) = M(i, :);
+    
+    % Solucoes ja encontradas
+    if i==1;
+        Sol = X(i,:);
+    else
+        Sol = [Sol; X(i,: )];
+    end;
+   
+  
+%     % Individuo (Roteamento)
+%     R = X(i, :);
+% 
+%     % SEQUENCIAMENTO a partir do roteamento R
+%     m_aux = Scheduler(R, m); 
 % 
 %     % FITNESS
+%     [makespan, ~, ~] = Fitness(m_aux, Tij, Oij, m, n);
 %     pBestCost(i) = makespan;
-%     pBest(i, :) = X(i, :);
-  
-  % Individuo (Roteamento)
-  R = X(i, :);
-  
-  % SEQUENCIAMENTO a partir do roteamento R
-  M = Scheduler(R, m); 
-  
-  % FITNESS
-  [makespan, ~, ~] = Fitness(M, Tij, Oij, m, n);
-  pBestCost(i) = makespan;
-  pBest(i, :) = R;
+%     pBestX(i, :) = R;
+%     %pBestM(i, :) = m_aux;
 
 end;
 
 % Melhor global (inicial)
 [gBestCost, idx] = min(pBestCost);
-gBest = pBest(idx, :);
+gBestX = pBestX(idx, :);
+gBestM = pBestM(idx, :);
 
 % PASSO 3
-nIter = 5;
+%nIter = 5;
+fprintf('Aplicando PSO... \n');
 for iter=1:nIter;
   
-  %status = round(iter*100/(nIter*swarmSize))/2;
-  fprintf('Completed: %d/%d (gBest: %d)...\n', iter, nIter, gBestCost);
-  
-  % Movimento da nuvem...
+  % Movimento da nuvem (Exploracao Global)...
   w = wMax - ( (wMax - wMin)/nIter ) * iter;
   r1 = rand(swarmSize, 1);
   r2 = rand(swarmSize, 1);
   
-  % Velocidade
-  v = w*v + c1 * bsxfun(@times, r1, pBest - X) + c2 * bsxfun(@times, r2, (bsxfun(@minus, gBest, X)));
-  %v = w*v + c1 * bsxfun(@times, r1, pBest - x) + c2 * bsxfun(@times, r2, repmat(gBest,swarmSize,1) - x);
+  x = X;
   
-  X = round(X + v);
+  % Velocidade
+  v = w*v + c1 * bsxfun(@times, r1, pBestX - x) + c2 * bsxfun(@times, r2, (bsxfun(@minus, gBestX, x)));
+  
+  % Posicao
+  x = round(x + v);
   
   % Validar vMin e vMax
-  X(X < 1) = 1;
-  X(X > m) = m;
+  x(x < 1) = 1;
+  x(x > m) = m;
   
-  % Ajustar operacoes que n possuem maquinas factiveis...
+  % Validar/Ajustar operacoes que n possuem maquinas factiveis...
   for i=1:n;
       
     % Maquinas factiveis na ordem de melhor >> pior, 
@@ -141,27 +162,57 @@ for iter=1:nIter;
     
   end;
   
+    % Verificar se ja faz parte do conjunto solucao (ANTIESTAGNACAO)
+    if sum(ismember(X, Sol, 'rows'))>0;
+        % Selecionar aleatoriamento uma operacao da nuvem
+        i = randi([1 n],1,1);
+        
+        % Atribuir novas Maquinas factiveis para a operacao i, na ordem de melhor >> pior, 
+        [machines, priorities] = MachinesFeasible(i, swarmSize, Tij(i, :), Mij, 4);
+        X(:,i) = machines;
+        
+        %         totalMach = length(unique(machines));
+        %         % Operacoes que n possuem maquinas factiveis...
+        %         wrongOps = find(~ismember(X(:,i),Tij(i,:)));
+        %         for w=1:length(wrongOps)
+        %             % Atribuindo uma maquina (rand) factivel para a operacao em questao
+        %             X(wrongOps(w), i) = machinesOp(randi([1 totalMach],1,1));
+        %             %wrongOps(w) = machinesOp(randi([1 totalMach],1,1));
+        %         end;
+    end;
+  
   % Avaliar particulas
   for i=1:swarmSize;
       
     % Simulated Annealing (Avaliacao da particula)
-    [M, makespan, X(i, :)] = SA(X(i, :), @Scheduler, @Fitness, @gerar_vizinho);
+    [M(i,:), makespan, X(i, :), ~] = SA(X(i, :), @Scheduler, @Fitness, @Neighbor);
 
     % FITNESS    
     if(makespan < pBestCost(i));
+        % Melhor local
         pBestCost(i) = makespan;
-        pBest(i, :) = X(i, :);
+        pBestX(i, :) = X(i, :);
+        pBestM(i, :) = M(i, :);
     end;
-      
+    if(makespan < gBestCost);
+        % Melhor global
+        [gBestCost, idx] = min(pBestCost);
+        gBestX = pBestX(idx, :);
+        gBestM = pBestM(idx, :);
+    end;
+    
+    Sol = [Sol; X(i,: )];
+    
   end;
   
-  % Melhore global
-  [gBestCost, idx] = min(pBestCost);
-  gBest = pBest(idx, :);
-
+  fprintf('Completed: %d/%d (gBest: %d)...\n', iter, nIter, gBestCost);
   
 end;
 
 % Plotando gBest
-[makespan, schedule, scheduleOpsLabels] = Fitness(Scheduler(gBest, m), Tij, Oij, m, n);
+fprintf('Plotando grafico..');
+[makespan, schedule, scheduleOpsLabels] = Fitness(gBestM, Tij, Oij, m, n);
 Gantt(schedule, scheduleOpsLabels, makespan, m);
+fprintf('. Ok!\n');
+
+timeExec = toc;

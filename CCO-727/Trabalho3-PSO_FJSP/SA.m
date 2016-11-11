@@ -1,4 +1,4 @@
-function [ M, makespan, R ] = SA( S, Scheduler, Fitness, Neighbor )
+function [ M, makespan, R, O ] = SA( S, Scheduler, Fitness, Neighbor )
 
     % S = Sequenciamento solucao
 
@@ -54,13 +54,20 @@ function [ M, makespan, R ] = SA( S, Scheduler, Fitness, Neighbor )
     makespan = costS;
     %disp(makespan);
     
-    % Processar roteamento resultante a partir do sequenciamento S
+    % Processar roteamento R resultante a partir do sequenciamento S
+    % e order de processamento individual O
     R = zeros(1, n);
+    O = R;
     for i=1:size(M,2);
-        for j=1:size(M{i},2);
+        for j=1:size(M{i}, 2);
             R(M{i}(j)) = i;
+            O(M{i}(j)) = j;
         end;
     end;
+    
+    %disp(O);
+    
+    % [mBest, costBest, rBest] = SA(gBestX,@Scheduler,@Fitness,@Neighbor);
 
 end
 

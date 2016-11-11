@@ -1,4 +1,4 @@
-function [ m ] = ProcessingMachines(P, Mij)
+function [ m ] = ParticleOperation(P, Mij)
     
     % Recebe o roteamento (sequencia de indices prioritarios de maquinas que processam Oij)
     % e retorna as maquinas em questao
@@ -6,7 +6,7 @@ function [ m ] = ProcessingMachines(P, Mij)
     % Mij = matriz de prioridades de maquinas (colunas) para cada Oij (row)
     n = size(P, 2);
     m = zeros(size(P));
-    for i=1:n;
+    parfor i=1:n;
         prioritiesOp = P(:,i);
         machinesOp = Mij(i,:);
         m(:,i) = machinesOp(prioritiesOp);

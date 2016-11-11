@@ -21,7 +21,7 @@ function [minbestSolCost, bestSchedule] = fitnessG(S, tempo_jobs, m, n, iteratio
   %roteiros possíveis se todas as outras operações possuirem níveis com
   %apenas 1 máquina
   for i=1:n
-    opcoes{i} = find(S(1,i));%==leveis(i,:));
+    opcoes{i} = find(S(1,i) == leveis(i,:));
     total = total * length(opcoes{i}) ; % 3
   end
     repeticoes = total; %3
