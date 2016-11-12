@@ -1,4 +1,4 @@
-function [ machines, priorities ] = MachinesFeasible( op, swarmSize, Tij, Mij, numDiscards )
+function [ machines, priorities ] = MachinesFeasible( op, totalMachines, Tij, Mij, numDiscards )
 
     % Maquinas factives para operacao Oij (tempo > 0)
     fMach = find(Tij);
@@ -20,7 +20,7 @@ function [ machines, priorities ] = MachinesFeasible( op, swarmSize, Tij, Mij, n
     probs = ones(1, length(machinesOp))*1/length(machinesOp);
     
     % Maquinas factiveis resultantes
-    machines = randsample(machinesOp, swarmSize, true, probs);
+    machines = randsample(machinesOp, totalMachines, true, probs);
     % Indices de prioridade das maquinas factives
     [~, priorities] = ismember(machines, Mij(op, :));
 end
