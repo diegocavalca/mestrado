@@ -32,7 +32,7 @@ function [makespan, gantt, gantt_op] = Fitness (M, Times, Oij, m, n)
   % E
   % NAO HOUVER deadlock (iterator = 8, ou seja, passou por todas as maquinas mas 
   % nenhuma fez um job)
-  while (sum(stageO) < (maxOps+m) & iterator < m);
+  while (sum(stageO) < (maxOps+m) && iterator < m);
 
     iterator = 0;
 

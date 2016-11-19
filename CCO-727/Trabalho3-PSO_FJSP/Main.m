@@ -1,66 +1,98 @@
-clc; clear all;
-tic;
-
-% Importando dados do benchmark
-global Tij;
-global Oij;
-Tij = importdata('benchmarks/tempos8x8.txt'); % Tempos das operacoes
-Oij = importdata('benchmarks/op8x8.txt'); % Operacoes por job
-
-% ORGANIZANDO MAQUINAS - Melhores tempos tem prioridade 1, maior tem
-% prioridade M, sendo M > 0, senao a maquina M nao eh factivel para Oij
-global Mij;
-Mij = MachinesPrior(Tij);
-
-% Variaveis do problema
-global n;
-global m;
-[n,m] = size(Tij);
-
-% Configuracoes SA
-global t0;
-t0 = 3;
-
-global tEnd;
-tEnd = 0.01;
-
-global B;
-B = 0.9;
-
-% IMPORTANTE: Testar possiveis combinações de parametros PSO
-for nIter = [30, 50]
-    for swarmSize = [15, 30, 50, 100]
-        for wMax = [1.2, 1.3, 1.4, 1.6]
-            for wMin = [0.2, 0.3, 0.4, 0.5, 0.6]
-                for c = [1.2, 1.4944, 1.5, 1.6, 1.8, 2]
-                    c1 = c;
-                    c2 = c1;
+% % IMPORTANTE: Testar possiveis combinações de parametros PSO
+% for nIter = 30%[30, 50]
+%     for swarmSize = 15%[15, 30, 50, 100]
+%         for wMax = 1.2%[1.2, 1.5, 1.6]
+%             for wMin = 0.2%[0.2, 0.4, 0.6]
+%                 for cX = 1.2%[1.2, 1.4944, 2]
+%                     c1 = cX;
+%                     c2 = c1;
                     
                     % %% Iteracoes de teste - gerando dados do relatorio
                     % (para cada combinacao de parametros do PSO)
+                    clc; clear all;
+                    
+                    % Importando dados do benchmark
+                    dataset = '10x10'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
+                    global Tij;
+                    global Oij;
+
+                    Tij = importdata(sprintf('benchmarks/tempos%s.txt', dataset)); % Tempos das operacoes
+                    Oij = importdata(sprintf('benchmarks/op%s.txt', dataset)); % Operacoes por job
+
+                    % ORGANIZANDO MAQUINAS - Melhores tempos tem prioridade 1, maior tem
+                    % prioridade M, sendo M > 0, senao a maquina M nao eh factivel para Oij
+                    global Mij;
+                    Mij = MachinesPrior(Tij);
+
+                    % Variaveis do problema
+                    global n;
+                    global m;
+                    [n,m] = size(Tij);
+
+                    % Configuracoes SA (XIA;WU)
+%                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
+%                     global t0;   % Temp. Inicial
+%                     t0 = 3;
+%                     global tEnd; % Temp. final
+%                     tEnd = 0.01;
+%                     global B;    % Fator de resfriamento
+%                     B = 0.9;                    
+%                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
+                    %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+                    global t0;   % Temp. Inicial
+                    t0 = 5;
+                    global tEnd; % Temp. final
+                    tEnd = 0.01;
+                    global B;    % Fator de resfriamento
+                    B = 0.9;  
+                    %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+%                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
+%                     global t0;   % Temp. Inicial
+%                     t0 = 10;
+%                     global tEnd; % Temp. final
+%                     tEnd = 0.01;
+%                     global B;    % Fator de resfriamento
+%                     B = 0.95;  
+%                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                     %%%%% CONFIGURACOES DINAMICAS (NAO TESTADAS) %%%%%
+%                     % Fator de resfriamento
+%                     global B;
+%                     B = 0.9;
+%                     % Temp. inicial
+%                     maxChange = max(Oij);
+%                     avgExeTime = sum(Oij)/m;
+%                     if( avgExeTime > maxChange );
+%                         maxChange = avgExeTime;
+%                     end;
+%                     global t0;
+%                     t0 = -maxChange/log(B);
+%                     % Temp. final
+%                     global tEnd;
+%                     tEnd = 0.9^40;
+%                     %%%%% CONFIGURACOES DINAMICAS (NAO TESTADAS) %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                    % Configuracoes PSO (* = XIA; WU, | = Gabriel)
+                    nIter     = 30;  %Possiveis: [30|, 50*]
+                    swarmSize = 30;  %Possiveis: [15, 30|, 50, 100*]
+                    wMax      = 1.2; %Possiveis: [1.2*|, 1.5, 1.6]
+                    wMin      = 0.4; 
+                    %Possiveis: [0.2, 0.4*|, 0.6]
+                    c1        = 2.0; %Possiveis: [1.2, 1.4944, 2*|]
+                    c2        = c1;
+                    
                     for tst = 1:10;
                     %% Testes pro relatorio
-                        
-                        v = ones(swarmSize, n);
-                        vMin = 1;
-                        vMax = m;
-                        
-                        % Configuracoes PSO
-                    %     nIter = 30; %30|50;
-                    %     swarmSize = 30; %30;
-                    %     wMax = 1.5; %1.5; Testar = 1.2, 1.3, 1.4, 1.6
-                    %     wMin = 0.4; %0.4 | Testar 0.2, 0.3, 0.5
-                    %     c1 = 2; %2 ; Testar = 1.2, 1.4944
-                    %     c2 = c1;
-
-
+                    
+                        clc;
+                        tic;
 
                         % Nuvem (populacao) e solucao inicial
                         X = zeros(swarmSize, n);
                         M = cell(swarmSize, m);
                         P = X;
-                        %O = X;
-                        %f = V;
 
                         % Variaveis objetivo
                         % Local
@@ -71,46 +103,32 @@ for nIter = [30, 50]
                         gBestX = zeros(1, n);
                         gBestM = cell(1,m);
                         gBestCost = Inf;
-
+                        
                         % Variaveis adicionais
-                        discardMachines = 4;
-                        Sol = zeros(1, n); % Controle de estagnacao
-                        histBest = zeros(1, swarmSize);
+                        discardMachines = 4;            
+                        Sol = zeros(1, n);              % Controle de estagnacao
+                        histBest = zeros(1, swarmSize); % Historico de iteracoes
+                        v = ones(swarmSize, n);         % Velocidade da equacao 1a (PSO) 
 
                         % ROTEAMENTO - Gerar populacao do enxame (roteamentos)
+                        fprintf('Gerando populacao inicial... \n');
                         for i=1:n;
 
                             % Maquinas factiveis na ordem de melhor >> pior, 
                             [machines, priorities] = MachinesFeasible(i, swarmSize, Tij(i, :), Mij, discardMachines);
-
-                        %     % Maquinas factives para operacao Oij (tempo > 0)
-                        %     fMach = find(Tij);
-                        %     
-                        %     % Maquinas factiveis na ordem de melhor >> pior
-                        %     machinesOp = Mij(i, ismember(Mij(i, :), fMach));
-                        %     
-                        %     % Estocastico = eliminar ultima maquina (mais lenta pra Oij) e atribuir
-                        %     % maquina de maneira que todas tenham mesma probabilidade
-                        %     machinesOp = machinesOp(1:2);
-                        %     
-                        %     probs = ones(1, length(machinesOp))*1/length(machinesOp);
-                        %     
-                        %     % Maquinas factiveis resultantes
-                        %     machines = randsample(machinesOp, swarmSize, true, probs);
-                        %     % Indices de prioridade das maquinas factives
-                        %     [~, priorities] = ismember(machines, Mij(op, :));
 
                             X(:, i) = machines;
                             P(:, i) = priorities;
 
                         end;
 
-                        % AVALIACAO INICIAL dos individuos (roteamentos)
+                        % AVALIACAO INICIAL dos individuos
+                        fprintf('Avaliacao da populacao inicial... \n');
                         for i=1:swarmSize;
 
-                            % Simulated Annealing (Avaliacao da particula)
+                            % Simulated Annealing (Avaliacao da particula otimizada pelo SA)
                             [M(i,:), makespan, X(i, :), ~] = SA(X(i, :), @Scheduler, @Fitness, @Neighbor);
-
+                            
                             % FITNESS
                             pBestCost(i) = makespan;
                             pBestX(i, :) = X(i, :);
@@ -118,24 +136,26 @@ for nIter = [30, 50]
 
                             % Solucoes ja encontradas
                             P(i, :) = ParticlePosition(X(i, :), Mij);
-                        %     if i==1;
-                        %         Sol = P(i,:);
-                        %     else
-                        %         Sol = [Sol; P(i,: )];
-                        %     end;
-
-
-                        %     % Individuo (Roteamento)
-                        %     R = X(i, :);
-                        % 
-                        %     % SEQUENCIAMENTO a partir do roteamento R
-                        %     m_aux = Scheduler(R, m); 
-                        % 
-                        %     % FITNESS
-                        %     [makespan, ~, ~] = Fitness(m_aux, Tij, Oij, m, n);
-                        %     pBestCost(i) = makespan;
-                        %     pBestX(i, :) = R;
-                        %     %pBestM(i, :) = m_aux;
+                            
+                            %      % AVALIACAO INICIAL SIMPLES (sem
+                            %      otimizacao da populacao inicial)
+                            %     if i==1;
+                            %         Sol = P(i,:);
+                            %     else
+                            %         Sol = [Sol; P(i,: )];
+                            %     end;
+                            %
+                            %     % Individuo (Roteamento)
+                            %     R = X(i, :);
+                            % 
+                            %     % SEQUENCIAMENTO a partir do roteamento R
+                            %     m_aux = Scheduler(R, m); 
+                            % 
+                            %     % FITNESS
+                            %     [makespan, ~, ~] = Fitness(m_aux, Tij, Oij, m, n);
+                            %     pBestCost(i) = makespan;
+                            %     pBestX(i, :) = R;
+                            %     %pBestM(i, :) = m_aux;
 
                         end;
 
@@ -145,7 +165,6 @@ for nIter = [30, 50]
                         gBestM = pBestM(idx, :);
 
                         % PASSO 3
-                        %nIter = 5;
                         fprintf('Aplicando PSO... \n');
                         for iter=1:nIter;
 
@@ -201,26 +220,7 @@ for nIter = [30, 50]
 
                             end;
 
-                        %   % Validar/Ajustar operacoes que n possuem maquinas factiveis...
-                        %   for i=1:n;
-                        %       
-                        %     % Maquinas factiveis na ordem de melhor >> pior, 
-                        %     fMach = find(Tij(i, :));% Maquinas factives para operacao Oij (tempo > 0)
-                        %     machinesOp = Mij(i, ismember(Mij(i, :), fMach));% Maquinas factiveis na ordem de melhor >> pior
-                        %     machinesOp = machinesOp(1:length(machinesOp)-4);
-                        %     totalMach = length(machinesOp);
-                        % 
-                        %     % Operacoes que n possuem maquinas factiveis...
-                        %     wrongOps = find(~ismember(X(:,i),Tij(i,:)));
-                        %     for w=1:length(wrongOps)
-                        %         % Atribuindo uma maquina (rand) factivel para a operacao em questao
-                        %         X(wrongOps(w), i) = machinesOp(randi([1 totalMach],1,1));
-                        %         %wrongOps(w) = machinesOp(randi([1 totalMach],1,1));
-                        %     end;
-                        %     
-                        %   end;
-
-                            % Verificar se ja faz parte do conjunto solucao (ANTIESTAGNACAO)
+                            % CONROLE ANTIESTAGNACAO - Verificar se ja faz parte do conjunto solucao
                             idxRep = find(ismember(x, Sol, 'rows'));
                             while ~isempty(idxRep); % Enquanto as solucoes geradas estiverem no conjunto Sol
 
@@ -241,39 +241,7 @@ for nIter = [30, 50]
                                 idxRep = find(ismember(x, Sol, 'rows'));
 
                             end;
-                        %     if sum(ismember(x, Sol, 'rows'))>0;
-                        %         
-                        % %         % Selecionar aleatoriamento uma operacao da nuvem
-                        % %         i = randi([1 n],1,1);
-                        % %         
-                        % %         % Atribuir novas Maquinas factiveis para a operacao i, na ordem de melhor >> pior, 
-                        % %         [machines, priorities] = MachinesFeasible(i, swarmSize, Tij(i, :), Mij, discardMachines);
-                        % %         x(:,i) = priorities;
-                        %         
-                        %         % Caso encontre, trocar estocasticamente o valor de uma operacao
-                        %         % selecionada randomicamente para cada particula em x
-                        %         
-                        %         disp('Antiestag!');
-                        %         
-                        %         for c=1:swarmSize;
-                        %             % Selecionar aleatoriamento uma operacao da nuvem
-                        %             randOp = randi([1 n],1,1);
-                        % 
-                        %             % Atribuir novas Maquinas factiveis para a operacao i, na ordem de melhor >> pior, 
-                        %             [machines, priorities] = MachinesFeasible(randOp, 1, Tij(randOp, :), Mij, discardMachines);
-                        %             x(:,randOp) = priorities;
-                        %         end;
-                        %         
-                        %         %         totalMach = length(unique(machines));
-                        %         %         % Operacoes que n possuem maquinas factiveis...
-                        %         %         wrongOps = find(~ismember(X(:,i),Tij(i,:)));
-                        %         %         for w=1:length(wrongOps)
-                        %         %             % Atribuindo uma maquina (rand) factivel para a operacao em questao
-                        %         %             X(wrongOps(w), i) = machinesOp(randi([1 totalMach],1,1));
-                        %         %             %wrongOps(w) = machinesOp(randi([1 totalMach],1,1));
-                        %         %         end;
-                        %     end;
-
+                            
                             % Gerando (convertendo) particulas de operacao
                             P = x;
                             X = ParticleOperation(x,Mij);  
@@ -298,8 +266,6 @@ for nIter = [30, 50]
                                 gBestM = M(i, :);
                             end;
 
-                            %Sol = [Sol; P(i,: )];
-
                           end;
 
                           histBest(iter) = gBestCost;
@@ -323,12 +289,8 @@ for nIter = [30, 50]
                         %% !!!!! Iteracoes de teste - gerando dados do relatorio !!!!!
 
                            % Salvar figuras...
-                           folderResults = sprintf('Results/Iter_%.0f-Swarm_%.0f-wMin_%.2f-wMax_%.2f-c1_%.2f-c2_%.2f/', nIter, swarmSize, wMin, wMax, c1, c2);
+                           folderResults = sprintf('Results/%s/Iter_%.0f-Swarm_%.0f-wMin_%.2f-wMax_%.2f-c1_%.2f-c2_%.2f/', dataset, nIter, swarmSize, wMin, wMax, c1, c2);
                            mkdir(folderResults);
-                           %DateString = datestr(datetime('now'));
-                           %date = str2num(datestr(now,'ddmm'));
-                           %hour = str2num(datestr(now,'HHMM'));
-                           %datestr = datestr(now,'ddmm-HHMMSS');
                            date_str = tst;%datetime('now','TimeZone','local','Format','dd.MM.yy_HH.mm.ss');
                            figureHistory = figure();
                            plot(histBest); 
@@ -339,18 +301,20 @@ for nIter = [30, 50]
 
                            % Salvar dados do teste...
                            dataSummary = [nIter swarmSize wMin wMax c1 c2 gBestCost timeExec];
-                           dlmwrite('Results/Summary.csv', dataSummary, '-append', 'delimiter', ';');
+                           dlmwrite(sprintf('Results/%s/Summary.csv', dataset), dataSummary, '-append', 'delimiter', ';');
 
                            % Variaveis
-                           save(sprintf('%s/gBest-%s.mat', folderResults, date_str), 'gBest');
-                           save(sprintf('%s/histBest-%s.mat', folderResults, date_str), 'histBest');
+                           save(sprintf('%s/gBestX-%.0f.mat', folderResults, date_str), 'gBestX');
+                           save(sprintf('%s/gBestM-%.0f.mat', folderResults, date_str), 'gBestM');
+                           save(sprintf('%s/histBest-%.0f.mat', folderResults, date_str), 'histBest');
 
                     end;
-                        %% !!!!! Fim dos testes pro relatorio !!!!!
+                    %% !!!!! Fim dos testes pro relatorio !!!!!
                     
-                end;
-            end;
-        end;
-    end;
-
-end;
+%                 end;
+%             end;
+%         end;
+%     end;
+% 
+% end;
+%delete(gcp); 

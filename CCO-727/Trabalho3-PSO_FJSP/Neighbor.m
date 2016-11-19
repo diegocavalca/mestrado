@@ -32,7 +32,7 @@ function [vizinho] = Neighbor(k, m)
           %disp(':B');
       end;
       
-      regMach = [regMach;nova_maq];
+      regMach = [regMach; nova_maq];
       
       z = vizinho{nova_maq};
 
