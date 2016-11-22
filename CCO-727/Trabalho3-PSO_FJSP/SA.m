@@ -7,6 +7,7 @@ function [ M, makespan, R, O ] = SA( S, Scheduler, Fitness, Neighbor )
     global Oij;
     global n;
     global m;
+    global jobs;
     global t0;
     global tEnd;
     global B;
@@ -14,7 +15,7 @@ function [ M, makespan, R, O ] = SA( S, Scheduler, Fitness, Neighbor )
     % SOLUCAO - SEQUENCIAMENTO a partir do roteamento X
     S = Scheduler(S, m); 
     M = S;
-    [makespan, ~, ~] = Fitness(M, Tij, Oij, m, n);
+    [makespan, ~, ~] = Fitness(M, Tij, Oij, m, jobs);
     
     iterations = 0;
     tK = t0;
@@ -22,16 +23,16 @@ function [ M, makespan, R, O ] = SA( S, Scheduler, Fitness, Neighbor )
         for i=1:10 % Exec maxima por temp
             
             % Reavaliando S
-            [costS, ~, ~] = Fitness(S, Tij, Oij, m, n);
+            [costS, ~, ~] = Fitness(S, Tij, Oij, m, jobs);
             
             %1. Gerar nova solucao S_
             S_ = Neighbor(S, m);
-            [costS_, ~, ~] = Fitness(S_, Tij, Oij, m, n);
+            [costS_, ~, ~] = Fitness(S_, Tij, Oij, m, jobs);
 
             % Se der deadlock, gere uma nova solucao S_
             while costS_ == 0 %|| costS_ >= costS
                 S_ = Neighbor(S, m);
-                [costS_, ~, ~] = Fitness(S_, Tij, Oij, m, n);          
+                [costS_, ~, ~] = Fitness(S_, Tij, Oij, m, jobs);          
             end;   
             
             %fprintf('tK=%.2f, i=%.0f, costS=%.0f, costS_=%.0f, makespan=%.0f\n', tK,i,costS, costS_, makespan);

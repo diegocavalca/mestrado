@@ -9,10 +9,11 @@
                     
                     % %% Iteracoes de teste - gerando dados do relatorio
                     % (para cada combinacao de parametros do PSO)
-                    clc; clear all;
+                    clc; 
+                    clear all;
                     
                     % Importando dados do benchmark
-                    dataset = '10x10'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
+                    dataset = '15x10'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
                     global Tij;
                     global Oij;
 
@@ -25,9 +26,12 @@
                     Mij = MachinesPrior(Tij);
 
                     % Variaveis do problema
-                    global n;
-                    global m;
+                    global n; % Relacao completa de JobxOperacoes
+                    global m; % Numero de Maquinas
                     [n,m] = size(Tij);
+                    
+                    global jobs; % Numero de Jobs
+                    jobs = size(Oij, 2);
 
                     % Configuracoes SA (XIA;WU)
 %                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
@@ -38,22 +42,22 @@
 %                     global B;    % Fator de resfriamento
 %                     B = 0.9;                    
 %                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
-                    %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
-                    global t0;   % Temp. Inicial
-                    t0 = 5;
-                    global tEnd; % Temp. final
-                    tEnd = 0.01;
-                    global B;    % Fator de resfriamento
-                    B = 0.9;  
-                    %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
-%                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
+%                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
 %                     global t0;   % Temp. Inicial
-%                     t0 = 10;
+%                     t0 = 5;
 %                     global tEnd; % Temp. final
 %                     tEnd = 0.01;
 %                     global B;    % Fator de resfriamento
-%                     B = 0.95;  
-%                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
+%                     B = 0.9;  
+%                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+                    %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
+                    global t0;   % Temp. Inicial
+                    t0 = 10;
+                    global tEnd; % Temp. final
+                    tEnd = 0.01;
+                    global B;    % Fator de resfriamento
+                    B = 0.95;  
+                    %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                     %%%%% CONFIGURACOES DINAMICAS (NAO TESTADAS) %%%%%
@@ -78,12 +82,15 @@
                     nIter     = 30;  %Possiveis: [30|, 50*]
                     swarmSize = 30;  %Possiveis: [15, 30|, 50, 100*]
                     wMax      = 1.2; %Possiveis: [1.2*|, 1.5, 1.6]
-                    wMin      = 0.4; 
-                    %Possiveis: [0.2, 0.4*|, 0.6]
+                    wMin      = 0.4; %Possiveis: [0.2, 0.4*|, 0.6]
                     c1        = 2.0; %Possiveis: [1.2, 1.4944, 2*|]
                     c2        = c1;
                     
-                    for tst = 1:10;
+                    % Configuracoes adicionais
+                    discardMachines = (m-1)-3;      % Maquinas a seremdescartadas (piores) / apenas 3 melhores      
+                    Sol = zeros(1, n);              % Controle de estagnacao
+                    
+                    for tst = 8:10;
                     %% Testes pro relatorio
                     
                         clc;
@@ -105,10 +112,10 @@
                         gBestCost = Inf;
                         
                         % Variaveis adicionais
-                        discardMachines = 4;            
-                        Sol = zeros(1, n);              % Controle de estagnacao
-                        histBest = zeros(1, swarmSize); % Historico de iteracoes
-                        v = ones(swarmSize, n);         % Velocidade da equacao 1a (PSO) 
+                        %discardMachines = (m-1)-3; % Maquinas a seremdescartadas (piores) / apenas 3 melhores      
+                        Sol = zeros(1, n);         % Controle de estagnacao
+                        histBest = zeros(1, nIter); % Historico de iteracoes
+                        v = ones(swarmSize, n);     % Velocidade da equacao 1a (PSO) 
 
                         % ROTEAMENTO - Gerar populacao do enxame (roteamentos)
                         fprintf('Gerando populacao inicial... \n');
@@ -167,6 +174,9 @@
                         % PASSO 3
                         fprintf('Aplicando PSO... \n');
                         for iter=1:nIter;
+                        %iter = 0;
+                        %while gBestCost > 7;
+                            %iter = iter + 1;
 
                           % Insere particulas no registro de solucoes
                           Sol = [Sol; P];
@@ -195,7 +205,7 @@
                             % Validar vMin e vMax
                             for i=1:n;
 
-                              % Maquinas factives (4 melhores)
+                              % Maquinas factives (3 melhores)
                               fMach = find(Tij(i, :));% Maquinas factives para operacao Oij (tempo > 0)
                               machinesOp = Mij(i, ismember(Mij(i, :), fMach));% Maquinas factiveis na ordem de melhor >> pior
                               machinesOp = machinesOp(1:length(machinesOp)-discardMachines);
@@ -295,7 +305,7 @@
                            figureHistory = figure();
                            plot(histBest); 
                            saveas(figureHistory, sprintf('%s/best-COST_%.2f-%.0f.jpg', folderResults, gBestCost, date_str)); % BestCost
-                           [makespan, schedule, scheduleOpsLabels] = Fitness(gBestM, Tij, Oij, m, n);
+                           [makespan, schedule, scheduleOpsLabels] = Fitness(gBestM, Tij, Oij, m, jobs);
                            Gantt(schedule, scheduleOpsLabels, makespan, m);
                            saveas(gcf, sprintf('%s/distHistory-COST_%.2f-%.0f.jpg', folderResults, gBestCost, date_str)); % History
 

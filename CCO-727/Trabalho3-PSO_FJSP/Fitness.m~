@@ -1,11 +1,11 @@
 function [makespan, gantt, gantt_op] = Fitness (M, Times, Oij, m, n)
 
     % PARAMS:
-    % M     = Sequenciamento/Programacao
+    % M = Sequenciamento/Programacao
     % Times = Matriz de tempos
-    % Oij   = Matriz de prioridades
-    % m     = numero de maquinas (recursos)
-    % n     = numeros de jobs
+    % Oij = Matriz de prioridades
+    % m = numero de maquinas
+    % n = numeros de jobs
 
   % Totalizando Operacoes para todos os Jobs
   opsJobs = cumsum(Oij);
