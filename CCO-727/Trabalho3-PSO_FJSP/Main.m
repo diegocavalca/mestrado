@@ -13,7 +13,7 @@
                     clear all;
                     
                     % Importando dados do benchmark
-                    dataset = '15x10'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
+                    dataset = '8x8'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
                     global Tij;
                     global Oij;
 
@@ -34,14 +34,14 @@
                     jobs = size(Oij, 2);
 
                     % Configuracoes SA (XIA;WU)
-%                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
-%                     global t0;   % Temp. Inicial
-%                     t0 = 3;
-%                     global tEnd; % Temp. final
-%                     tEnd = 0.01;
-%                     global B;    % Fator de resfriamento
-%                     B = 0.9;                    
-%                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
+                    %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
+                    global t0;   % Temp. Inicial
+                    t0 = 3;
+                    global tEnd; % Temp. final
+                    tEnd = 0.01;
+                    global B;    % Fator de resfriamento
+                    B = 0.9;                    
+                    %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
 %                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
 %                     global t0;   % Temp. Inicial
 %                     t0 = 5;
@@ -50,14 +50,14 @@
 %                     global B;    % Fator de resfriamento
 %                     B = 0.9;  
 %                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
-                    %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
-                    global t0;   % Temp. Inicial
-                    t0 = 10;
-                    global tEnd; % Temp. final
-                    tEnd = 0.01;
-                    global B;    % Fator de resfriamento
-                    B = 0.95;  
-                    %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
+%                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
+%                     global t0;   % Temp. Inicial
+%                     t0 = 10;
+%                     global tEnd; % Temp. final
+%                     tEnd = 0.01;
+%                     global B;    % Fator de resfriamento
+%                     B = 0.95;  
+%                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                     %%%%% CONFIGURACOES DINAMICAS (NAO TESTADAS) %%%%%
@@ -170,6 +170,7 @@
                         [gBestCost, idx] = min(pBestCost);
                         gBestX = pBestX(idx, :);
                         gBestM = pBestM(idx, :);
+                        fprintf('Melhor inicial: %.0f... \n', gBestCost);
 
                         % PASSO 3
                         fprintf('Aplicando PSO... \n');

@@ -9,10 +9,11 @@
                     
                     % %% Iteracoes de teste - gerando dados do relatorio
                     % (para cada combinacao de parametros do PSO)
-                    clc; %clear all;
+                    clc; 
+                    clear all;
                     
                     % Importando dados do benchmark
-                    dataset = '10x10'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
+                    dataset = '8x8'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
                     global Tij;
                     global Oij;
 
@@ -33,22 +34,22 @@
                     jobs = size(Oij, 2);
 
                     % Configuracoes SA (XIA;WU)
-%                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
-%                     global t0;   % Temp. Inicial
-%                     t0 = 3;
-%                     global tEnd; % Temp. final
-%                     tEnd = 0.01;
-%                     global B;    % Fator de resfriamento
-%                     B = 0.9;                    
-%                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
-                    %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+                    %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
                     global t0;   % Temp. Inicial
-                    t0 = 5;
+                    t0 = 3;
                     global tEnd; % Temp. final
                     tEnd = 0.01;
                     global B;    % Fator de resfriamento
-                    B = 0.9;  
-                    %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+                    B = 0.9;                    
+                    %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
+%                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+%                     global t0;   % Temp. Inicial
+%                     t0 = 5;
+%                     global tEnd; % Temp. final
+%                     tEnd = 0.01;
+%                     global B;    % Fator de resfriamento
+%                     B = 0.9;  
+%                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
 %                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
 %                     global t0;   % Temp. Inicial
 %                     t0 = 10;
@@ -89,7 +90,7 @@
                     discardMachines = (m-1)-3;      % Maquinas a seremdescartadas (piores) / apenas 3 melhores      
                     Sol = zeros(1, n);              % Controle de estagnacao
                     
-                    for tst = 8:10;
+                    for tst = 88:89;
                     %% Testes pro relatorio
                     
                         clc;
@@ -111,10 +112,10 @@
                         gBestCost = Inf;
                         
                         % Variaveis adicionais
-                        %discardMachines = (m-1)-3;      % Maquinas a seremdescartadas (piores) / apenas 3 melhores      
-                        %Sol = zeros(1, n);              % Controle de estagnacao
-                        histBest = zeros(1, swarmSize); % Historico de iteracoes
-                        v = ones(swarmSize, n);         % Velocidade da equacao 1a (PSO) 
+                        %discardMachines = (m-1)-3; % Maquinas a seremdescartadas (piores) / apenas 3 melhores      
+                        Sol = zeros(1, n);         % Controle de estagnacao
+                        histBest = zeros(1, nIter); % Historico de iteracoes
+                        v = ones(swarmSize, n);     % Velocidade da equacao 1a (PSO) 
 
                         % ROTEAMENTO - Gerar populacao do enxame (roteamentos)
                         fprintf('Gerando populacao inicial... \n');
@@ -127,7 +128,7 @@
                             P(:, i) = priorities;
 
                         end;
-
+                        
                         % AVALIACAO INICIAL dos individuos
                         fprintf('Avaliacao da populacao inicial... \n');
                         for i=1:swarmSize;
@@ -164,12 +165,16 @@
                             %     %pBestM(i, :) = m_aux;
 
                         end;
-                        
 
                         % Melhor global (inicial)
                         [gBestCost, idx] = min(pBestCost);
                         gBestX = pBestX(idx, :);
                         gBestM = pBestM(idx, :);
+                        fprintf('Melhor inicial: %.0f... \n', gBestCost);
+                        
+                        % RICARDO APPROACH
+                        fBest = gBestCost;
+                        fWorst = min(pBestCost);
 
                         % PASSO 3
                         fprintf('Aplicando PSO... \n');
@@ -182,7 +187,9 @@
                           Sol = [Sol; P];
 
                           % Movimento da nuvem (Exploracao Global)...
-                          w = wMax - ( (wMax - wMin)/nIter ) * iter;
+                          %w = wMax - ( (wMax - wMin)/nIter ) * iter;
+                          fWorst
+                          w = wMin + (wMax - wMin) * ( (fi - fWorst) / (fBest - fWorst));
                           r1 = rand(swarmSize, 1);
                           r2 = rand(swarmSize, 1);
 
