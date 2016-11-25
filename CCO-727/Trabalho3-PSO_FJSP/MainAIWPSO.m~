@@ -13,7 +13,7 @@
                     clear all;
                     
                     % Importando dados do benchmark
-                    dataset = '8x8'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
+                    dataset = '10x10'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
                     global Tij;
                     global Oij;
 
@@ -33,23 +33,25 @@
                     global jobs; % Numero de Jobs
                     jobs = size(Oij, 2);
 
-                    % Configuracoes SA (XIA;WU)
-                    %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
-                    global t0;   % Temp. Inicial
-                    t0 = 3;
-                    global tEnd; % Temp. final
-                    tEnd = 0.01;
-                    global B;    % Fator de resfriamento
-                    B = 0.9;                    
-                    %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
-%                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+                    % Configuracoes SA (XIA;WU) / 
+%                     global nIterTemp;
+%                     nIterTemp = 10;
+%                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
 %                     global t0;   % Temp. Inicial
-%                     t0 = 5;
+%                     t0 = 3;
 %                     global tEnd; % Temp. final
 %                     tEnd = 0.01;
 %                     global B;    % Fator de resfriamento
-%                     B = 0.9;  
-%                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+%                     B = 0.9;       
+%                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
+                    %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+                    global t0;   % Temp. Inicial
+                    t0 = 5;
+                    global tEnd; % Temp. final
+                    tEnd = 0.01;
+                    global B;    % Fator de resfriamento
+                    B = 0.9;  
+                    %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
 %                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
 %                     global t0;   % Temp. Inicial
 %                     t0 = 10;
@@ -59,8 +61,13 @@
 %                     B = 0.95;  
 %                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                     %%%%% CONFIGURACOES DINAMICAS (NAO TESTADAS) %%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                    %%%%% CONFIGURACOES DINAMICAS SA %%%%%
+                    % Numero de Iteracoes por temperatura
+                    global nIterTemp;
+                    nIterTemp = 10;
 %                     % Fator de resfriamento
 %                     global B;
 %                     B = 0.9;
@@ -75,22 +82,30 @@
 %                     % Temp. final
 %                     global tEnd;
 %                     tEnd = 0.9^40;
-%                     %%%%% CONFIGURACOES DINAMICAS (NAO TESTADAS) %%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                     % Configuracoes PSO (* = XIA; WU, | = Gabriel)
                     nIter     = 30;  %Possiveis: [30|, 50*]
-                    swarmSize = 30;  %Possiveis: [15, 30|, 50, 100*]
+                    swarmSize = 50;%sum(Oij)+jobs;  %Possiveis: [15, 30|, 50, 100*]
                     wMax      = 1.2; %Possiveis: [1.2*|, 1.5, 1.6]
                     wMin      = 0.4; %Possiveis: [0.2, 0.4*|, 0.6]
-                    c1        = 2.0; %Possiveis: [1.2, 1.4944, 2*|]
+                    c1        = 2; %Possiveis: [1.2, 1.4944, 2*|]
                     c2        = c1;
                     
-                    % Configuracoes adicionais
-                    discardMachines = (m-1)-3;      % Maquinas a seremdescartadas (piores) / apenas 3 melhores      
-                    Sol = zeros(1, n);              % Controle de estagnacao
-                    
-                    for tst = 88:89;
+                    % Maquinas descartadas (piores) para geracao de solucao 
+                    % (apenas X melhores niveis)
+                    if m > 5 ;
+                        if isempty(find(Tij == 0));
+                           discardMachines = m-3;     % Todas maquinas factiveis
+                        else
+                           discardMachines = (m-1)-3; % Pelo menos uma NAO FACT.
+                        end;  
+                    else
+                        discardMachines = 0;
+                    end;
+                    %%%%% CONFIGURACOES DINAMICAS %%%%%
+                                        
+                    for tst = 90:91;
                     %% Testes pro relatorio
                     
                         clc;
@@ -148,26 +163,6 @@
                             
                             % AIW-APPROACH
                             swarmCost(i) = makespan;
-                            
-                            %      % AVALIACAO INICIAL SIMPLES (sem
-                            %      otimizacao da populacao inicial)
-                            %     if i==1;
-                            %         Sol = P(i,:);
-                            %     else
-                            %         Sol = [Sol; P(i,: )];
-                            %     end;
-                            %
-                            %     % Individuo (Roteamento)
-                            %     R = X(i, :);
-                            % 
-                            %     % SEQUENCIAMENTO a partir do roteamento R
-                            %     m_aux = Scheduler(R, m); 
-                            % 
-                            %     % FITNESS
-                            %     [makespan, ~, ~] = Fitness(m_aux, Tij, Oij, m, n);
-                            %     pBestCost(i) = makespan;
-                            %     pBestX(i, :) = R;
-                            %     %pBestM(i, :) = m_aux;
 
                         end;
 
@@ -288,23 +283,19 @@
                             end;
                                                         
                             % AIW-APPROACH
-                            swarmCost(
-                            fBest = min(swarmCost);
-                            fWorst = max(swarmCost);
-                            fX = round(sum(swarmCost)/length(swarmCost));      
+                            swarmCost(i) = makespan;
 
                           end;
-                          
-                          % RICARDO APPROACH !!!                          
-                          fX = round(fX/length(pBestCost));  
-                          
+                                                    
                           % Melhor global (inicial)
                           [gBestCost, idx] = min(pBestCost);
                           gBestX = pBestX(idx, :);
                           gBestM = pBestM(idx, :);
                           
-                          % RICARDO APPROACH !!!
-                          fBest = gBestCost;
+                          % AIW-APPROACH
+                          fBest = min(swarmCost);
+                          fWorst = max(swarmCost);
+                          fX = round(sum(swarmCost)/length(swarmCost)); 
 
                           histBest(iter) = gBestCost;
 
@@ -329,22 +320,22 @@
                            % Salvar figuras...
                            folderResults = sprintf('Results/%s/Iter_%.0f-Swarm_%.0f-wMin_%.2f-wMax_%.2f-c1_%.2f-c2_%.2f/', dataset, nIter, swarmSize, wMin, wMax, c1, c2);
                            mkdir(folderResults);
-                           date_str = tst;%datetime('now','TimeZone','local','Format','dd.MM.yy_HH.mm.ss');
+                           %date_str = tst;%datetime('now','TimeZone','local','Format','dd.MM.yy_HH.mm.ss');
                            figureHistory = figure();
                            plot(histBest); 
-                           saveas(figureHistory, sprintf('%s/best-COST_%.2f-%.0f.jpg', folderResults, gBestCost, date_str)); % BestCost
+                           saveas(figureHistory, sprintf('%s/%.0f-distHistory-COST_%.2f-.jpg', folderResults, tst, gBestCost)); % BestCost
                            [makespan, schedule, scheduleOpsLabels] = Fitness(gBestM, Tij, Oij, m, jobs);
                            Gantt(schedule, scheduleOpsLabels, makespan, m);
-                           saveas(gcf, sprintf('%s/distHistory-COST_%.2f-%.0f.jpg', folderResults, gBestCost, date_str)); % History
+                           saveas(gcf, sprintf('%s/%.0f-best-COST_%.2f.jpg', folderResults, tst, gBestCost)); % History
 
                            % Salvar dados do teste...
                            dataSummary = [nIter swarmSize wMin wMax c1 c2 gBestCost timeExec];
                            dlmwrite(sprintf('Results/%s/Summary.csv', dataset), dataSummary, '-append', 'delimiter', ';');
 
                            % Variaveis
-                           save(sprintf('%s/gBestX-%.0f.mat', folderResults, date_str), 'gBestX');
-                           save(sprintf('%s/gBestM-%.0f.mat', folderResults, date_str), 'gBestM');
-                           save(sprintf('%s/histBest-%.0f.mat', folderResults, date_str), 'histBest');
+                           save(sprintf('%s/%.0f-gBestX.mat', folderResults, tst), 'gBestX');
+                           save(sprintf('%s/%.0f-gBestM.mat', folderResults, tst), 'gBestM');
+                           save(sprintf('%s/%.0f-histBest.mat', folderResults, tst), 'histBest');
 
                     end;
                     %% !!!!! Fim dos testes pro relatorio !!!!!

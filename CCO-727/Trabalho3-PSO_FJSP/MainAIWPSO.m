@@ -34,8 +34,8 @@
                     jobs = size(Oij, 2);
 
                     % Configuracoes SA (XIA;WU) / 
-                    % Maquinas descartadas (piores) para solucao (apenas X
-                    % melhores niveis)
+                    global nIterTemp;
+                    nIterTemp = 20;
 %                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
 %                     global t0;   % Temp. Inicial
 %                     t0 = 3;
@@ -43,7 +43,6 @@
 %                     tEnd = 0.01;
 %                     global B;    % Fator de resfriamento
 %                     B = 0.9;       
-%                     discardMachines = (m-1)-3;
 %                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
                     global t0;   % Temp. Inicial
@@ -52,7 +51,6 @@
                     tEnd = 0.01;
                     global B;    % Fator de resfriamento
                     B = 0.9;  
-                    discardMachines = m-3;
                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
 %                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
 %                     global t0;   % Temp. Inicial
@@ -61,11 +59,15 @@
 %                     tEnd = 0.01;
 %                     global B;    % Fator de resfriamento
 %                     B = 0.95;  
-%                     discardMachines = m-3;
 %                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                     %%%%% CONFIGURACOES DINAMICAS (NAO TESTADAS) %%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                     %%%%% CONFIGURACOES DINAMICAS SA %%%%%
+%                     % Numero de Iteracoes por temperatura
+%                     global nIterTemp;
+%                     nIterTemp = 20;
 %                     % Fator de resfriamento
 %                     global B;
 %                     B = 0.9;
@@ -80,18 +82,30 @@
 %                     % Temp. final
 %                     global tEnd;
 %                     tEnd = 0.9^40;
-%                     %%%%% CONFIGURACOES DINAMICAS (NAO TESTADAS) %%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
                     % Configuracoes PSO (* = XIA; WU, | = Gabriel)
                     nIter     = 30;  %Possiveis: [30|, 50*]
-                    swarmSize = 50;  %Possiveis: [15, 30|, 50, 100*]
+                    swarmSize = 50;  %sum(Oij)+jobs;  %Possiveis: [15, 30|, 50, 100*]
                     wMax      = 1.2; %Possiveis: [1.2*|, 1.5, 1.6]
                     wMin      = 0.4; %Possiveis: [0.2, 0.4*|, 0.6]
-                    c1        = 2.0; %Possiveis: [1.2, 1.4944, 2*|]
+                    c1        = 2;   %Possiveis: [1.2, 1.4944, 2*|]
                     c2        = c1;
+                    
+                    % Maquinas descartadas (piores) para geracao de solucao 
+                    % (apenas X melhores niveis)
+                    if m > 5 ;
+                        if isempty(find(Tij == 0));
+                           discardMachines = m-3;     % Todas maquinas factiveis
+                        else
+                           discardMachines = (m-1)-3; % Pelo menos uma NAO FACT.
+                        end;  
+                    else
+                        discardMachines = 0;
+                    end;
+                    %%%%% CONFIGURACOES DINAMICAS %%%%%
                                         
-                    for tst = 90:90;
+                    for tst = 100:101;
                     %% Testes pro relatorio
                     
                         clc;
@@ -133,7 +147,7 @@
                         end;
                         
                         % AVALIACAO INICIAL dos individuos
-                        fprintf('Avaliacao da populacao inicial... \n');
+                        fprintf('Avaliacao da populacao inicial');
                         for i=1:swarmSize;
 
                             % Simulated Annealing (Avaliacao da particula otimizada pelo SA)
@@ -149,6 +163,8 @@
                             
                             % AIW-APPROACH
                             swarmCost(i) = makespan;
+                            
+                            fprintf('.');
 
                         end;
 
@@ -156,7 +172,7 @@
                         [gBestCost, idx] = min(pBestCost);
                         gBestX = pBestX(idx, :);
                         gBestM = pBestM(idx, :);
-                        fprintf('Melhor inicial: %.0f... \n', gBestCost);
+                        fprintf(' \nMelhor inicial: %.0f... \n', gBestCost);
                         
                         % AIW-APPROACH
                         fBest = min(swarmCost);
@@ -174,9 +190,9 @@
                           Sol = [Sol; P];
 
                           % Movimento da nuvem (Exploracao Global)...
-                          %w = wMax - ( (wMax - wMin)/nIter ) * iter;
+                          w = wMax - ( (wMax - wMin)/nIter ) * iter;
                           
-                          w = wMin + (wMax - wMin) * ( (fX - fWorst) / (fBest - fWorst));
+                          %w = wMin + (wMax - wMin) * ( (fX - fWorst) / (fBest - fWorst));
                           r1 = rand(swarmSize, 1);
                           r2 = rand(swarmSize, 1);
 

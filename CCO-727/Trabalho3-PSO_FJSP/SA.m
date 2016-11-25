@@ -11,6 +11,7 @@ function [ M, makespan, R, O ] = SA( S, Scheduler, Fitness, Neighbor )
     global t0;
     global tEnd;
     global B;
+    global nIterTemp;
 
     % SOLUCAO - SEQUENCIAMENTO a partir do roteamento X
     S = Scheduler(S, m); 
@@ -20,7 +21,7 @@ function [ M, makespan, R, O ] = SA( S, Scheduler, Fitness, Neighbor )
     iterations = 0;
     tK = t0;
     while tK > tEnd
-        for i=1:10 % Exec maxima por temp
+        for i=1:nIterTemp % Exec maxima por temp
             
             % Reavaliando S
             [costS, ~, ~] = Fitness(S, Tij, Oij, m, jobs);
@@ -40,28 +41,41 @@ function [ M, makespan, R, O ] = SA( S, Scheduler, Fitness, Neighbor )
             %3. Avaliar S_
             deltaF_ = costS_ - costS;
             
-            if min([1 exp(-deltaF_/tK)]) > rand(1);
-                S = S_;
-            end;
-            if costS_ < makespan;
-                makespan = costS_;
-                M = S_;
-            end;
-
-%             if deltaF_ <= 0;
-%                 % Atualizar S
+%             if min([1 exp(-deltaF_/tK)]) > rand(1);
 %                 S = S_;
-%                 if costS_ < makespan;
-%                     makespan = costS_;
-%                     M = S_;
-%                 end;
-%             else
-%                 if exp(-deltaF_/tK) > rand(1);
-%                     % Atualizar S
-%                     S = S_;
-%                     %costS = costS_;  
-%                 end;
 %             end;
+%             if costS_ < makespan;
+%                 makespan = costS_;
+%                 M = S_;
+%             end;
+      
+%           if deltaCost < 0
+%             acceptedSol = newSol;
+%             acceptedSolCost = newSolCost;
+%           else
+%             randVal = rand(1);
+%             p = exp(-1*deltaCost / T);
+%             if p > randVal
+%               acceptedSol = newSol;
+%               acceptedSolCost = newSolCost;
+%             end
+%           end
+
+            if deltaF_ <= 0;
+                % Atualizar S
+                S = S_;
+                if costS_ < makespan;
+                    makespan = costS_;
+                    M = S_;
+                end;
+            else
+                if exp(-deltaF_/tK) > rand(1); % Piora da solucao
+                    % Atualizar S
+                    S = S_;
+                    %costS = costS_;  
+                end;
+            end;
+            
             %disp(S{1});
             iterations = iterations + 1;
         end;

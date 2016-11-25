@@ -39,7 +39,7 @@ function [makespan, gantt, gantt_op] = Fitness (M, Times, Oij, m, n)
   % E
   % NAO HOUVER deadlock (iterator = 8, ou seja, passou por todas as maquinas mas 
   % nenhuma fez um job)
-  while (sum(stageO) < (maxOps+m) && iterator < m);
+  while (sum(stageO) < (maxOps+n) && iterator < m);
 
     iterator = 0;
 
@@ -114,7 +114,7 @@ function [makespan, gantt, gantt_op] = Fitness (M, Times, Oij, m, n)
   end;
 
   % Se houve DEADLOCK retorna 0 senao o makespan
-  if sum(stageO) < (maxOps+m);
+  if sum(stageO) < (maxOps+n);
       makespan = 0;
   else
       makespan = max(timeByMachine);
