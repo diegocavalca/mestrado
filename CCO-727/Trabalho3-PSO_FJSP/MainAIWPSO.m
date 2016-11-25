@@ -37,12 +37,8 @@
                     global nIterTemp;
                     nIterTemp = 20;
 %                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
-%                     global t0;   % Temp. Inicial
-%                     t0 = 3;
-%                     global tEnd; % Temp. final
-%                     tEnd = 0.01;
-%                     global B;    % Fator de resfriamento
-%                     B = 0.9;       
+
+
 %                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
                     global t0;   % Temp. Inicial
