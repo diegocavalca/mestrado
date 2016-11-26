@@ -13,7 +13,7 @@
                     clear all;
                     
                     % Importando dados do benchmark
-                    dataset = '10x10'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
+                    dataset = '15x10'; % ALTERAR DATASET PRA TESTAR EM DIFERENTES CONJUNTOS (Ex.: 8x8, 10x10 ou 15x10)
                     global Tij;
                     global Oij;
 
@@ -37,25 +37,29 @@
                     global nIterTemp;
                     nIterTemp = 20;
 %                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
-
-
-%                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
-                    %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
-                    global t0;   % Temp. Inicial
-                    t0 = 5;
-                    global tEnd; % Temp. final
-                    tEnd = 0.01;
-                    global B;    % Fator de resfriamento
-                    B = 0.9;  
-                    %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
-%                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
 %                     global t0;   % Temp. Inicial
-%                     t0 = 10;
+%                     t0 = 3;
 %                     global tEnd; % Temp. final
 %                     tEnd = 0.01;
 %                     global B;    % Fator de resfriamento
-%                     B = 0.95;  
-%                     %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
+%                     B = 0.9;  
+%                     %%%%%%%%%%%%%%% 8x8 %%%%%%%%%%%%%%%%
+%                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+%                     global t0;   % Temp. Inicial
+%                     t0 = 5;
+%                     global tEnd; % Temp. final
+%                     tEnd = 0.01;
+%                     global B;    % Fator de resfriamento
+%                     B = 0.9;  
+%                     %%%%%%%%%%%%%% 10x10 %%%%%%%%%%%%%%%
+                    %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
+                    global t0;   % Temp. Inicial
+                    t0 = 10;
+                    global tEnd; % Temp. final
+                    tEnd = 0.01;
+                    global B;    % Fator de resfriamento
+                    B = 0.95;  
+                    %%%%%%%%%%%%%% 15x10 %%%%%%%%%%%%%%%
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -82,7 +86,7 @@
 
                     % Configuracoes PSO (* = XIA; WU, | = Gabriel)
                     nIter     = 30;  %Possiveis: [30|, 50*]
-                    swarmSize = 50;  %sum(Oij)+jobs;  %Possiveis: [15, 30|, 50, 100*]
+                    swarmSize = 100;  %Possiveis: [15, 30|, 50, 100*] %sum(Oij)+jobs;  
                     wMax      = 1.2; %Possiveis: [1.2*|, 1.5, 1.6]
                     wMin      = 0.4; %Possiveis: [0.2, 0.4*|, 0.6]
                     c1        = 2;   %Possiveis: [1.2, 1.4944, 2*|]
@@ -125,7 +129,6 @@
                         swarmCost = Inf(1, swarmSize);
                         
                         % Variaveis adicionais
-                        %discardMachines = (m-1)-3; % Maquinas a seremdescartadas (piores) / apenas 3 melhores      
                         Sol = zeros(1, n);         % Controle de estagnacao
                         histBest = zeros(1, nIter); % Historico de iteracoes
                         v = ones(swarmSize, n);     % Velocidade da equacao 1a (PSO) 
