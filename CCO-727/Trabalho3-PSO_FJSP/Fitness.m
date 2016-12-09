@@ -20,8 +20,9 @@ function [makespan, gantt, gantt_op] = Fitness (M, Times, Oij, m, n)
   timeByMachine = zeros(1, m);
   
   % Tempos dos jobs...
-  timeByJob = cell(1, n);
-  for i=1:n;
+  jobs = length(Oij);
+  timeByJob = cell(1, jobs);
+  for i=1:jobs;
     timeByJob{i} = zeros(1, cumsum(Oij(i)));
   end;
   

@@ -7,6 +7,7 @@ function [ m ] = ParticleOperation(P, Mij)
     n = size(P, 2);
     m = zeros(size(P));
     parfor i=1:n;
+    %for i=1:n;
         prioritiesOp = P(:,i);
         machinesOp = Mij(i,:);
         m(:,i) = machinesOp(prioritiesOp);

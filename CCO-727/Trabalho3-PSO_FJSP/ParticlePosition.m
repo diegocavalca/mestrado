@@ -8,6 +8,7 @@ function [ p ] = ParticlePosition( R, Mij )
     m = size(R, 1);
     p = zeros(size(R));
     parfor r=1:m;
+    %for r=1:m;
         for c=1:n;
             p(r, c) = find( ismember( Mij(c,:), R(r, c) ) );
         end;
